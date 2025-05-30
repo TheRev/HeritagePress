@@ -1,0 +1,35 @@
+{
+    "name": "heritagepress/wp-genealogy",
+    "description": "A comprehensive genealogy management system for WordPress with GEDCOM 7.0 support",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },    "autoload": {
+        "psr-4": {
+            "HeritagePress\\": "includes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HeritagePress\\Tests\\": "tests/"
+        },
+        "files": [
+            "tests/HeritageTestCase.php"
+        ]
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-html tests/coverage"
+    },
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Heritage Press",
+            "email": "info@heritagepress.net"
+        }
+    ],
+    "minimum-stability": "stable"
+}

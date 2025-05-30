@@ -1,0 +1,104 @@
+/* Media Import Progress Styles */
+.heritage-press-progress-container {
+    max-width: 800px;
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    height: 25px;
+    background: #f0f0f0;
+    border-radius: 13px;
+    padding: 3px;
+    margin: 20px 0;
+}
+
+.progress-fill {
+    background: #2271b1;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+    position: relative;
+    min-width: 30px;
+}
+
+.progress-text {
+    color: #fff;
+    position: absolute;
+    right: 10px;
+    font-weight: bold;
+    line-height: 19px;
+}
+
+.progress-stats {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
+
+.progress-details {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.import-summary {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.import-summary p {
+    margin: 5px 0;
+}
+
+.error-list {
+    margin-top: 20px;
+}
+
+.error-list table {
+    margin-top: 10px;
+}
+
+.progress-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+.progress-actions button {
+    margin-left: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Status indicators */
+.status-completed {
+    color: #46b450;
+}
+
+.status-error {
+    color: #dc3232;
+}
+
+.status-warning {
+    color: #ffb900;
+}
+
+/* Responsive design */
+@media screen and (max-width: 782px) {
+    .heritage-press-progress-container {
+        margin: 10px 0;
+        padding: 15px;
+    }
+
+    .progress-actions button {
+        width: 100%;
+        margin: 5px 0;
+    }
+}

@@ -1,0 +1,2 @@
+cd c:\Users\Joe\git_heritage_press\heritage-press
+composer dump-autoload
