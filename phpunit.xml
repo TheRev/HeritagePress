@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory suffix="Test.php">./tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Functional">
+            <directory suffix="Test.php">./tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="PLUGIN_NAME" value="Heritage Press"/>
+        <env name="PLUGIN_SLUG" value="heritage-press"/>
+        <env name="PLUGIN_NAMESPACE" value="HeritagePress"/>
+    </php>
+</phpunit>

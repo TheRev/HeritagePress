@@ -1,0 +1,54 @@
+# WordPress
+wp-config.php
+wp-content/*
+!wp-content/plugins/
+wp-content/plugins/*
+!wp-content/plugins/heritage-press/
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build outputs
+/dist/
+/build/
+/temp/
+
+# Test and debug files
+*-test.php
+*-debug.php
+debug_*.php
+test_*.php
+test-*.php
+*-check.php
+minimal-*.php
+simple-*.php
+*-diagnostic.php
+integration-*.php
+
+# Build scripts
+*.ps1
+
+# Documentation
+*-GUIDE.md
+*-FIX-GUIDE.md
+PHASE*.md
+WORDPRESS-*.md
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.rmtree
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Composer
+composer.phar
+Composer-Setup.exe
+
+# Other
+/Add/

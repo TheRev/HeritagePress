@@ -1,0 +1,141 @@
+<?php
+namespace HeritagePress\Tests\Mocks;
+
+class MockWPDB {
+    private $tables = [];
+    private $data = [];
+    private $lastInsertId = 0;
+    private $lastQuery;
+    private $prefix = 'wp_';
+    private $queries = [];
+    private $row_callback = null;
+
+    public function __construct() {
+        $this->tables = [];
+        $this->data = [];
+        $this->queries = [];
+    }
+
+    public function addTable($name, $columns = []) {
+        $this->tables[$name] = $columns;
+        $this->data[$name] = [];
+    }
+
+    public function query($query) {
+        $this->lastQuery = $query;
+        $this->queries[] = $query;
+        
+        if (stripos($query, 'DELETE FROM') === 0) {
+            $table = trim(substr($query, 12));
+            if (isset($this->data[$table])) {
+                $this->data[$table] = [];
+            }
+            return true;
+        }
+        
+        return false;
+    }
+
+    public function insert($table, $data, $format = null) {
+        if (!isset($this->data[$table])) {
+            return false;
+        }
+
+        $id = ++$this->lastInsertId;
+        $data['id'] = $id;
+        $this->data[$table][] = $data;
+        return true;
+    }
+
+    public function update($table, $data, $where, $format = null, $where_format = null) {
+        if (!isset($this->data[$table])) {
+            return false;
+        }
+
+        foreach ($this->data[$table] as $key => $row) {
+            $match = true;
+            foreach ($where as $field => $value) {
+                if (!isset($row[$field]) || $row[$field] !== $value) {
+                    $match = false;
+                    break;
+                }
+            }
+            
+            if ($match) {
+                $this->data[$table][$key] = array_merge($row, $data);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public function get_results($query, $output = OBJECT) {
+        $this->lastQuery = $query;
+        $this->queries[] = $query;
+        
+        if ($this->row_callback) {
+            return call_user_func($this->row_callback, $query);
+        }
+        
+        return [];
+    }
+
+    public function prepare($query, ...$args) {
+        foreach ($args as $arg) {
+            $pos = strpos($query, '%s');
+            if ($pos !== false) {
+                $query = substr_replace($query, $this->escape($arg), $pos, 2);
+            }
+        }
+        return $query;
+    }
+
+    public function escape($data) {
+        return addslashes($data);
+    }
+
+    public function get_row($query, $output = OBJECT, $y = 0) {
+        $this->lastQuery = $query;
+        $this->queries[] = $query;
+        
+        if ($this->row_callback) {
+            $results = call_user_func($this->row_callback, $query);
+            return $results ? $results[0] : null;
+        }
+        
+        return null;
+    }
+
+    public function get_var($query) {
+        $this->lastQuery = $query;
+        $this->queries[] = $query;
+        return null;
+    }
+
+    public function get_col($query, $x = 0) {
+        $this->lastQuery = $query;
+        $this->queries[] = $query;
+        return [];
+    }
+
+    public function insert_id() {
+        return $this->lastInsertId;
+    }
+
+    public function get_charset_collate() {
+        return 'DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci';
+    }
+
+    public function get_queries() {
+        return $this->queries;
+    }
+
+    public function clear_queries() {
+        $this->queries = [];
+    }
+
+    public function setRowCallback(callable $callback) {
+        $this->row_callback = $callback;
+    }
+}
