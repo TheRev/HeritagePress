@@ -26,7 +26,7 @@ class Evidence_Admin {
     private $evidence_repo;
     private $proof_repo;    public function __construct() {
         global $wpdb;
-        $audit_observer = new Audit_Log_Observer($wpdb, $wpdb->prefix . 'heritage_audit_log');
+        $audit_observer = new AuditLogObserver();
         
         $this->evidence_service = new Evidence_Analysis_Service();
         $this->citation_formatter = new Evidence_Citation_Formatter();

@@ -52,7 +52,10 @@ class Plugin {
             return new \HeritagePress\Database\GedcomDatabaseHandler();
         });        // GEDCOM 
         $this->container->register('gedcom.parser', function() {
-            return new \HeritagePress\GEDCOM\Gedcom7Parser();
+            // Parser needs a file path, so this is a factory
+            return function($file_path) {
+                return new \HeritagePress\GEDCOM\Gedcom7Parser($file_path);
+            };
         });
         
         $this->container->register('gedcom.validator', function() {
@@ -60,7 +63,10 @@ class Plugin {
         });
 
         $this->container->register('gedcom.exporter', function() {
-            return new \HeritagePress\GEDCOM\GedcomExportHandler();
+            // Exporter needs data and version, so this is a factory
+            return function($data, $target_version = '7.0') {
+                return new \HeritagePress\GEDCOM\GedcomExportHandler($data, $target_version);
+            };
         });
 
         // Events

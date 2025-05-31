@@ -471,12 +471,12 @@ class Database_Manager {
     public static function get_table_prefix() {
         global $wpdb;
         return $wpdb->prefix . 'heritage_press_';
-    }
-
-    /**
+    }    /**
      * Run database updates if needed
      */
     public function maybe_update_database() {
-        $this->upgrade_manager->maybe_update();
+        if ($this->upgrade_manager->needs_upgrade()) {
+            $this->upgrade_manager->upgrade();
+        }
     }
 }
