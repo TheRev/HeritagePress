@@ -34,7 +34,7 @@ if (!defined('HERITAGE_PRESS_PLUGIN_DIR')) {
 }
 
 // Register autoloader
-require_once HERITAGE_PRESS_PLUGIN_DIR . 'includes/class-autoloader.php';
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'includes/Autoloader.php';
 HeritagePress\Core\Autoloader::register();
 
 // Register activation and deactivation hooks
