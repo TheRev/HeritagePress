@@ -1,0 +1,317 @@
+<?php
+/**
+ * Individual class for Heritage Press
+ *
+ * @package HeritagePress
+ */
+
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Heritage Press Individual Class
+ */
+class Heritage_Press_Individual {
+    
+    /**
+     * Individual ID
+     */
+    public $id;
+    
+    /**
+     * GEDCOM ID
+     */
+    public $gedcom_id;
+    
+    /**
+     * First name
+     */
+    public $first_name;
+    
+    /**
+     * Last name
+     */
+    public $last_name;
+    
+    /**
+     * Gender (M/F/U)
+     */
+    public $gender;
+    
+    /**
+     * Birth date
+     */
+    public $birth_date;
+    
+    /**
+     * Birth place
+     */
+    public $birth_place;
+    
+    /**
+     * Death date
+     */
+    public $death_date;
+    
+    /**
+     * Death place
+     */
+    public $death_place;
+    
+    /**
+     * Notes
+     */
+    public $notes;
+    
+    /**
+     * Constructor
+     */
+    public function __construct($data = array()) {
+        if (!empty($data)) {
+            $this->load_data($data);
+        }
+    }
+    
+    /**
+     * Load data into object
+     */
+    private function load_data($data) {
+        $properties = array(
+            'id', 'gedcom_id', 'first_name', 'last_name', 'gender',
+            'birth_date', 'birth_place', 'death_date', 'death_place', 'notes'
+        );
+        
+        foreach ($properties as $property) {
+            if (isset($data[$property])) {
+                $this->$property = $data[$property];
+            }
+        }
+    }
+    
+    /**
+     * Save individual to database
+     */
+    public function save() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        
+        $data = array(
+            'gedcom_id' => $this->gedcom_id,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'gender' => $this->gender,
+            'birth_date' => $this->birth_date,
+            'birth_place' => $this->birth_place,
+            'death_date' => $this->death_date,
+            'death_place' => $this->death_place,
+            'notes' => $this->notes
+        );
+        
+        $formats = array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');
+        
+        if ($this->id) {
+            // Update existing record
+            $wpdb->update($table_name, $data, array('id' => $this->id), $formats, array('%d'));
+        } else {
+            // Insert new record
+            $wpdb->insert($table_name, $data, $formats);
+            $this->id = $wpdb->insert_id;
+        }
+        
+        return $this->id;
+    }
+    
+    /**
+     * Delete individual from database
+     */
+    public function delete() {
+        global $wpdb;
+        
+        if (!$this->id) {
+            return false;
+        }
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        return $wpdb->delete($table_name, array('id' => $this->id), array('%d'));
+    }
+    
+    /**
+     * Get individual by ID
+     */
+    public static function get_by_id($id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id), ARRAY_A);
+        
+        if ($result) {
+            return new self($result);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get individual by GEDCOM ID
+     */
+    public static function get_by_gedcom_id($gedcom_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE gedcom_id = %s", $gedcom_id), ARRAY_A);
+        
+        if ($result) {
+            return new self($result);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get all individuals
+     */
+    public static function get_all($limit = 50, $offset = 0) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY last_name, first_name LIMIT %d OFFSET %d", $limit, $offset), ARRAY_A);
+        
+        $individuals = array();
+        foreach ($results as $result) {
+            $individuals[] = new self($result);
+        }
+        
+        return $individuals;
+    }
+    
+    /**
+     * Search individuals
+     */
+    public static function search($search_term, $limit = 20) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'heritage_individuals';
+        $search_term = '%' . $wpdb->esc_like($search_term) . '%';
+        
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE first_name LIKE %s OR last_name LIKE %s ORDER BY last_name, first_name LIMIT %d",
+            $search_term, $search_term, $limit
+        ), ARRAY_A);
+        
+        $individuals = array();
+        foreach ($results as $result) {
+            $individuals[] = new self($result);
+        }
+        
+        return $individuals;
+    }
+    
+    /**
+     * Get full name
+     */
+    public function get_full_name() {
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
+    
+    /**
+     * Get display name with birth/death years
+     */
+    public function get_display_name() {
+        $name = $this->get_full_name();
+        
+        $birth_year = $this->get_birth_year();
+        $death_year = $this->get_death_year();
+        
+        if ($birth_year || $death_year) {
+            $name .= ' (' . $birth_year . '-' . $death_year . ')';
+        }
+        
+        return $name;
+    }
+    
+    /**
+     * Get birth year
+     */
+    public function get_birth_year() {
+        if (empty($this->birth_date)) {
+            return '';
+        }
+        
+        // Extract year from various date formats
+        if (preg_match('/(\d{4})/', $this->birth_date, $matches)) {
+            return $matches[1];
+        }
+        
+        return '';
+    }
+    
+    /**
+     * Get death year
+     */
+    public function get_death_year() {
+        if (empty($this->death_date)) {
+            return '';
+        }
+        
+        // Extract year from various date formats
+        if (preg_match('/(\d{4})/', $this->death_date, $matches)) {
+            return $matches[1];
+        }
+        
+        return '';
+    }
+    
+    /**
+     * Check if individual is living
+     */
+    public function is_living() {
+        return empty($this->death_date);
+    }
+    
+    /**
+     * Get families where this individual is a parent
+     */
+    public function get_families_as_parent() {
+        global $wpdb;
+        
+        $families_table = $wpdb->prefix . 'heritage_families';
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $families_table WHERE husband_id = %d OR wife_id = %d",
+            $this->id, $this->id
+        ), ARRAY_A);
+        
+        $families = array();
+        foreach ($results as $result) {
+            $families[] = new Heritage_Press_Family($result);
+        }
+        
+        return $families;
+    }
+    
+    /**
+     * Get families where this individual is a child
+     */
+    public function get_families_as_child() {
+        global $wpdb;
+        
+        $relationships_table = $wpdb->prefix . 'heritage_relationships';
+        $families_table = $wpdb->prefix . 'heritage_families';
+        
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT f.* FROM $families_table f 
+             INNER JOIN $relationships_table r ON f.id = r.family_id 
+             WHERE r.individual_id = %d AND r.relationship_type = 'child'",
+            $this->id
+        ), ARRAY_A);
+        
+        $families = array();
+        foreach ($results as $result) {
+            $families[] = new Heritage_Press_Family($result);
+        }
+        
+        return $families;
+    }
+}
