@@ -106,6 +106,52 @@ class Audit_Log_Observer implements ModelObserver {
         $this->log_to_database('FORCE_DELETE', $model, $this->get_model_data_for_log($model));
     }
 
+    /**
+     * Log creation event
+     */
+    public function log_creation($table_name, $record_id, $uuid, $file_id) {
+        $this->log_to_database('CREATE', (object)[
+            'table' => $table_name,
+            'id' => $record_id,
+            'uuid' => $uuid,
+            'file_id' => $file_id
+        ], []);
+    }
+
+    /**
+     * Log update event
+     */
+    public function log_update($table_name, $record_id, $uuid, $file_id, $changed_fields) {
+        $this->log_to_database('UPDATE', (object)[
+            'table' => $table_name,
+            'id' => $record_id,
+            'uuid' => $uuid,
+            'file_id' => $file_id
+        ], $changed_fields);
+    }
+
+    /**
+     * Log deletion event
+     */
+    public function log_deletion($table_name, $record_id, $uuid, $file_id) {
+        $this->log_to_database('DELETE', (object)[
+            'table' => $table_name,
+            'id' => $record_id,
+            'uuid' => $uuid,
+            'file_id' => $file_id
+        ], []);
+    }
+
+    /**
+     * Log general action event
+     */
+    public function log_action($action, $table_name, $record_id, $data) {
+        $this->log_to_database(strtoupper($action), (object)[
+            'table' => $table_name,
+            'id' => $record_id
+        ], $data);
+    }
+
     private function get_model_data_for_log($model): ?array {
         if (method_exists($model, 'toArray')) {
             return $model->toArray();

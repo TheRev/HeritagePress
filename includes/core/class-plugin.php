@@ -100,20 +100,22 @@ class Plugin {
 
         $container->singleton('database.gedcom', function() {
             return new \HeritagePress\Database\GedcomDatabaseHandler();
-        });
-
-        // Register GEDCOM services
+        });        // Register GEDCOM services
         $container->singleton('gedcom.parser', function() {
-            return new \HeritagePress\Gedcom\Gedcom7_Parser();
+            // The parser needs a file path, which should be provided when actually parsing
+            // For the container registration, we provide a placeholder that can be replaced
+            return function($file_path) {
+                return new \HeritagePress\GEDCOM\Gedcom7Parser($file_path);
+            };
         });
 
         $container->singleton('gedcom.validator', function() {
-            return new \HeritagePress\Gedcom\Gedcom7_Validator();
+            return new \HeritagePress\GEDCOM\Gedcom7Validator();
         });
 
         $container->singleton('gedcom.export', function() {
-            return new \HeritagePress\Gedcom\GedcomExportHandler();
-        });        // Register event handler
+            return new \HeritagePress\GEDCOM\GedcomExportHandler('', '7.0');
+        });// Register event handler
         $container->singleton('events', function() {
             return new \HeritagePress\Core\GedcomEvents();
         });
@@ -146,10 +148,9 @@ class Plugin {
      */
     private function register_repositories() {
         $container = Container::getInstance();
-        
-        // Register audit log observer
+          // Register audit log observer
         $container->singleton('audit.observer', function() {
-            return new Audit_Log_Observer();
+            return new \HeritagePress\Core\AuditLogObserver();
         });
 
         // Register repositories with audit observer dependency
@@ -163,12 +164,8 @@ class Plugin {
             return new \HeritagePress\Repositories\Family_Repository(
                 $container->get('audit.observer')
             );
-        });
-
-        $container->singleton('repository.gedcom_tree', function() use ($container) {
-            return new \HeritagePress\Repositories\Gedcom_Tree_Repository(
-                $container->get('audit.observer')
-            );
+        });        $container->singleton('repository.gedcom_tree', function() use ($container) {
+            return new \HeritagePress\Repositories\GedcomTree_Repository();
         });
 
         // Register other repositories as needed
@@ -662,10 +659,8 @@ class Plugin {
         $import_id = sanitize_text_field($_POST['import_id'] ?? '');
         if (!$import_id) {
             wp_send_json_error('Invalid import ID');
-        }
-
-        $import_data = get_transient('heritage_press_import_' . $import_id);
-        if (!$import_data) {
+        }        $import_data = get_transient('heritage_press_import_' . $import_id);
+        if (!$import_data || !is_array($import_data)) {
             wp_send_json_error('Import session not found');
         }
 
@@ -747,10 +742,12 @@ class Plugin {
      * @param string $import_id Import session ID
      * @param string $filepath Path to GEDCOM file
      */
-    private function process_gedcom_file($import_id, $filepath) {
-        try {
+    private function process_gedcom_file($import_id, $filepath) {        try {
             // Update status to processing
             $import_data = get_transient('heritage_press_import_' . $import_id);
+            if (!$import_data || !is_array($import_data)) {
+                $import_data = []; // Initialize as empty array if not found
+            }
             $import_data['status'] = 'processing';
             $import_data['progress'] = 10;
             set_transient('heritage_press_import_' . $import_id, $import_data, HOUR_IN_SECONDS);
@@ -873,11 +870,12 @@ class Plugin {
             $import_data['individuals_imported'] = $individual_count;
             $import_data['families_imported'] = $family_count;
             $import_data['completed_at'] = current_time('mysql');
-            set_transient('heritage_press_import_' . $import_id, $import_data, HOUR_IN_SECONDS);
-
-        } catch (\Exception $e) {
+            set_transient('heritage_press_import_' . $import_id, $import_data, HOUR_IN_SECONDS);        } catch (\Exception $e) {
             // Update error status
             $import_data = get_transient('heritage_press_import_' . $import_id);
+            if (!$import_data || !is_array($import_data)) {
+                $import_data = []; // Initialize as empty array if not found
+            }
             $import_data['status'] = 'error';
             $import_data['error'] = $e->getMessage();
             set_transient('heritage_press_import_' . $import_id, $import_data, HOUR_IN_SECONDS);

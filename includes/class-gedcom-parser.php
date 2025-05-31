@@ -36,8 +36,7 @@ class Heritage_Press_GEDCOM_Parser {
     public function __construct() {
         // Initialize parser
     }
-    
-    /**
+      /**
      * Parse GEDCOM file
      *
      * @param string $file_path Path to GEDCOM file
@@ -46,13 +45,21 @@ class Heritage_Press_GEDCOM_Parser {
     public function parse_file($file_path) {
         if (!file_exists($file_path)) {
             $this->errors[] = 'File not found: ' . $file_path;
-            return false;
+            return array(
+                'individuals' => 0,
+                'families' => 0,
+                'errors' => $this->errors
+            );
         }
         
         $content = file_get_contents($file_path);
         if ($content === false) {
             $this->errors[] = 'Unable to read file: ' . $file_path;
-            return false;
+            return array(
+                'individuals' => 0,
+                'families' => 0,
+                'errors' => $this->errors
+            );
         }
         
         return $this->parse_content($content);

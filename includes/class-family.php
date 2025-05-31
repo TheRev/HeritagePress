@@ -10,6 +10,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Load WordPress compatibility helper
+require_once __DIR__ . '/wordpress-compatibility.php';
+
 /**
  * Heritage Press Family Class
  */
@@ -74,12 +77,12 @@ class Heritage_Press_Family {
             }
         }
     }
-    
-    /**
+      /**
      * Save family to database
      */
     public function save() {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_families';
         
@@ -108,9 +111,9 @@ class Heritage_Press_Family {
     
     /**
      * Delete family from database
-     */
-    public function delete() {
+     */    public function delete() {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         if (!$this->id) {
             return false;
@@ -127,9 +130,9 @@ class Heritage_Press_Family {
     
     /**
      * Get family by ID
-     */
-    public static function get_by_id($id) {
+     */    public static function get_by_id($id) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_families';
         $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id), ARRAY_A);
@@ -143,9 +146,9 @@ class Heritage_Press_Family {
     
     /**
      * Get family by GEDCOM ID
-     */
-    public static function get_by_gedcom_id($gedcom_id) {
+     */    public static function get_by_gedcom_id($gedcom_id) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_families';
         $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE gedcom_id = %s", $gedcom_id), ARRAY_A);
@@ -159,9 +162,9 @@ class Heritage_Press_Family {
     
     /**
      * Get all families
-     */
-    public static function get_all($limit = 50, $offset = 0) {
+     */    public static function get_all($limit = 50, $offset = 0) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_families';
         $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY id LIMIT %d OFFSET %d", $limit, $offset), ARRAY_A);
@@ -195,12 +198,12 @@ class Heritage_Press_Family {
         
         return Heritage_Press_Individual::get_by_id($this->wife_id);
     }
-    
-    /**
+      /**
      * Get children
      */
     public function get_children() {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $relationships_table = $wpdb->prefix . 'heritage_relationships';
         $individuals_table = $wpdb->prefix . 'heritage_individuals';
@@ -220,12 +223,12 @@ class Heritage_Press_Family {
         
         return $children;
     }
-    
-    /**
+      /**
      * Add child to family
      */
     public function add_child($individual_id) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $relationships_table = $wpdb->prefix . 'heritage_relationships';
         
@@ -239,12 +242,12 @@ class Heritage_Press_Family {
             array('%d', '%d', '%s')
         );
     }
-    
-    /**
+      /**
      * Remove child from family
      */
     public function remove_child($individual_id) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         
         $relationships_table = $wpdb->prefix . 'heritage_relationships';
         

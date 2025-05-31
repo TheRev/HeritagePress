@@ -13,8 +13,17 @@ use HeritagePress\Database\DatabaseManager;
 use HeritagePress\Models\Family_Relationship_Model;
 use HeritagePress\Core\Audit_Log_Observer;
 
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Load WordPress compatibility helper
+require_once __DIR__ . '/../wordpress-compatibility.php';
+
 class Family_Relationship_Repository {
 
+    /** @var wpdb */
     private $wpdb;
     private $table_name;
     private $audit_observer;
@@ -26,6 +35,7 @@ class Family_Relationship_Repository {
      */
     public function __construct(Audit_Log_Observer $audit_observer) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         $this->wpdb = $wpdb;
         $this->table_name = DatabaseManager::get_table_prefix() . 'family_relationships';
         $this->audit_observer = $audit_observer;

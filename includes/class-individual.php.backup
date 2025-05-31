@@ -94,9 +94,9 @@ class Heritage_Press_Individual {
     }
       /**
      * Save individual to database
-     */    public function save() {
+     */
+    public function save() {
         global $wpdb;
-        /** @var wpdb $wpdb */
         /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_individuals';
@@ -178,7 +178,6 @@ class Heritage_Press_Individual {
      */    public static function get_all($limit = 50, $offset = 0) {
         global $wpdb;
         /** @var wpdb $wpdb */
-        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_individuals';
         $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY last_name, first_name LIMIT %d OFFSET %d", $limit, $offset), ARRAY_A);
@@ -196,9 +195,9 @@ class Heritage_Press_Individual {
      * @param string $search_term Search term to find individuals
      * @param int $limit Maximum number of results to return
      * @return Heritage_Press_Individual[] Array of Heritage_Press_Individual objects
-     */    public static function search($search_term, $limit = 20) {
+     */
+    public static function search($search_term, $limit = 20) {
         global $wpdb;
-        /** @var wpdb $wpdb */
         
         $table_name = $wpdb->prefix . 'heritage_individuals';
         $search_term = '%' . $wpdb->esc_like($search_term) . '%';
@@ -280,9 +279,9 @@ class Heritage_Press_Individual {
     
     /**
      * Get families where this individual is a parent
-     */    public function get_families_as_parent() {
+     */
+    public function get_families_as_parent() {
         global $wpdb;
-        /** @var wpdb $wpdb */
         
         $families_table = $wpdb->prefix . 'heritage_families';
         $results = $wpdb->get_results($wpdb->prepare(
@@ -300,9 +299,9 @@ class Heritage_Press_Individual {
     
     /**
      * Get families where this individual is a child
-     */    public function get_families_as_child() {
+     */
+    public function get_families_as_child() {
         global $wpdb;
-        /** @var wpdb $wpdb */
         
         $relationships_table = $wpdb->prefix . 'heritage_relationships';
         $families_table = $wpdb->prefix . 'heritage_families';

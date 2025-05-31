@@ -163,8 +163,8 @@ $gedcom_trees = $wpdb->get_results("SELECT * FROM {$prefix}gedcom_trees ORDER BY
                                 </td>
                                 <td><?php echo esc_html(mysql2date('M j, Y g:i A', $tree->upload_date)); ?></td>
                                 <td>
-                                    <span class="status-<?php echo esc_attr($tree->status); ?>">
-                                        <?php echo esc_html(ucfirst($tree->status)); ?>
+                                    <span class="status-<?php echo esc_attr(isset($tree->status) ? $tree->status : 'unknown'); ?>">
+                                        <?php echo esc_html(isset($tree->status) ? ucfirst($tree->status) : __('Unknown', 'heritage-press')); ?>
                                     </span>
                                 </td>
                                 <td>

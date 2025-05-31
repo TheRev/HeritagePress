@@ -10,6 +10,8 @@
 
 namespace HeritagePress\Models;
 
+use HeritagePress\Database\QueryBuilder;
+
 class Evidence_Analysis extends Model {
     protected $table = 'evidence_analysis';
     
@@ -51,7 +53,7 @@ class Evidence_Analysis extends Model {
      */
     public static function where($column, $operator, $value = null) {
         $instance = new static();
-        $query = new \HeritagePress\Database\QueryBuilder($instance);
+        $query = new QueryBuilder($instance);
         return $query->where($column, $operator, $value);
     }
 

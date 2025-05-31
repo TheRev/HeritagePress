@@ -248,9 +248,8 @@ class EnhancedParser {
     /**
      * Enhanced name parsing for GEDCOM 7.0
      */
-    private function parse_name_value($name_value, &$individual) {
-        // Handle GEDCOM 7.0 name structure
-        if (preg_match('/^([^\/]*)\s*\/([^\/]*)\/', $name_value, $matches)) {
+    private function parse_name_value($name_value, &$individual) {        // Handle GEDCOM 7.0 name structure
+        if (preg_match('/^([^\/]*)\s*\/([^\/]*)/', $name_value, $matches)) {
             $individual['first_name'] = trim($matches[1]);
             $individual['last_name'] = trim($matches[2]);
         } else {

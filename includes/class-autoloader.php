@@ -8,6 +8,11 @@
 
 namespace HeritagePress\Core;
 
+// Load WordPress compatibility helper if not in WordPress environment
+if (!function_exists('wp_enqueue_script')) {
+    require_once __DIR__ . '/wordpress-compatibility.php';
+}
+
 /**
  * Class Autoloader
  */

@@ -7,6 +7,11 @@
 
 namespace HeritagePress\Repositories;
 
+// Load WordPress compatibility if not in WordPress context
+if (!defined('ABSPATH')) {
+    require_once __DIR__ . '/../wordpress-compatibility.php';
+}
+
 use HeritagePress\Database\DatabaseManager;
 use HeritagePress\Core\Audit_Log_Observer;
 use HeritagePress\Models\Individual_Model; // Added
@@ -14,6 +19,7 @@ use HeritagePress\Models\Model_Interface; // Added for type hinting if needed, t
 
 class Individual_Repository {
     
+    /** @var wpdb */
     private $wpdb;
     private $table_name;
     private Audit_Log_Observer $audit_observer; // Added observer property
@@ -22,9 +28,9 @@ class Individual_Repository {
      * Constructor
      *
      * @param Audit_Log_Observer $audit_observer Instance of the audit log observer.
-     */
-    public function __construct(Audit_Log_Observer $audit_observer) {
+     */    public function __construct(Audit_Log_Observer $audit_observer) {
         global $wpdb;
+        /** @var wpdb $wpdb */
         $this->wpdb = $wpdb;
         $this->table_name = DatabaseManager::get_table_prefix() . 'individuals';
         $this->audit_observer = $audit_observer;

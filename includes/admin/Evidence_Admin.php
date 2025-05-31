@@ -15,17 +15,18 @@ use HeritagePress\Repositories\Research_Question_Repository;
 use HeritagePress\Repositories\Information_Statement_Repository;
 use HeritagePress\Repositories\Evidence_Analysis_Repository;
 use HeritagePress\Repositories\Proof_Argument_Repository;
-use HeritagePress\Core\AuditLogObserver;
+use HeritagePress\Core\AuditLogObserver; // Corrected namespace and class name
 
 class Evidence_Admin {
 
     private $evidence_service;
     private $citation_formatter;
     private $research_repo;
-    private $info_repo;    private $evidence_repo;
+    private $info_repo;
+    private $evidence_repo;
     private $proof_repo;    public function __construct() {
         global $wpdb;
-        $audit_observer = new AuditLogObserver($wpdb, $wpdb->prefix . 'heritage_audit_log');
+        $audit_observer = new Audit_Log_Observer($wpdb, $wpdb->prefix . 'heritage_audit_log');
         
         $this->evidence_service = new Evidence_Analysis_Service();
         $this->citation_formatter = new Evidence_Citation_Formatter();
@@ -40,11 +41,10 @@ class Evidence_Admin {
     /**
      * Initialize WordPress hooks
      */
-    private function init_hooks() {        add_action('admin_menu', [$this, 'add_admin_menus']);
+    private function init_hooks() {
+        add_action('admin_menu', [$this, 'add_admin_menus']);
         add_action('admin_init', [$this, 'register_settings']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
-        
-        // AJAX handlers
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);        // AJAX handlers
         add_action('wp_ajax_save_research_question', [$this, 'ajax_save_research_question']);
         add_action('wp_ajax_save_information_statement', [$this, 'ajax_save_information_statement']);
         add_action('wp_ajax_save_evidence_analysis', [$this, 'ajax_save_evidence_analysis']);

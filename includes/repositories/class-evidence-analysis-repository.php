@@ -9,12 +9,18 @@
 
 namespace HeritagePress\Repositories;
 
+// Load WordPress compatibility if not in WordPress context  
+if (!defined('ABSPATH')) {
+    require_once __DIR__ . '/../wordpress-compatibility.php';
+}
+
 use HeritagePress\Database\DatabaseManager;
 use HeritagePress\Models\Evidence_Analysis;
 use HeritagePress\Core\Audit_Log_Observer;
 
 class Evidence_Analysis_Repository {
 
+    /** @var wpdb */
     private $wpdb;
     private $table_name;
     private $audit_observer;
@@ -22,7 +28,9 @@ class Evidence_Analysis_Repository {
     /**
      * Constructor
      */
-    public function __construct(Audit_Log_Observer $audit_observer) {        global $wpdb;
+    public function __construct(Audit_Log_Observer $audit_observer) {        
+        global $wpdb;
+        /** @var wpdb $wpdb */
         $this->wpdb = $wpdb;
         $this->table_name = DatabaseManager::get_table_prefix() . 'evidence_analysis';
         $this->audit_observer = $audit_observer;
@@ -199,11 +207,12 @@ class Evidence_Analysis_Repository {
 
     /**
      * Update evidence analysis
-     */
-    public function update($id, array $data) {
+     */    public function update($id, array $data) {
         $data['updated_at'] = current_time('mysql');
 
-        $result = $this->wpdb->update(
+        /** @var wpdb $wpdb_instance */
+        $wpdb_instance = $this->wpdb;
+        $result = $wpdb_instance->update(
             $this->table_name,
             $data,
             ['id' => $id],
@@ -343,9 +352,9 @@ class Evidence_Analysis_Repository {
         $analysis = $this->find_by_id($id);
         if ($analysis) {
             $this->audit_observer->log_action('delete', 'evidence_analysis', $id, []);
-        }
-
-        $result = $this->wpdb->delete(
+        }        /** @var wpdb $wpdb_instance */
+        $wpdb_instance = $this->wpdb;
+        $result = $wpdb_instance->delete(
             $this->table_name,
             ['id' => $id],
             ['%d']

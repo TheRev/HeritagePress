@@ -6,15 +6,14 @@ class GedcomDatabaseHandler {
 
     public function __construct() {
         $this->db_manager = new DatabaseManager();
-    }
-
-    /**
+    }    /**
      * Store GEDCOM data in database
      * 
      * @param array $data GEDCOM data to store
      * @param string $file_id Optional GEDCOM file identifier
-     * @return bool True on success, false on failure
-     */    public function storeGedcomData($data, $file_id = null) {
+     * @return string File ID on success, throws exception on failure
+     */
+    public function storeGedcomData($data, $file_id = null) {
         global $wpdb;
         
         // Generate file ID if not provided
@@ -326,12 +325,10 @@ class GedcomDatabaseHandler {
         try {
             // Delete records from each table where they match the file_id
             $tables = ['individuals', 'families', 'events', 'media', 'places', 'sources'];
-            
-            foreach ($tables as $table) {
+              foreach ($tables as $table) {
                 $wpdb->delete(
                     "{$prefix}{$table}",
-                    ['file_id' => $file_id],
-                    ['%s']
+                    ['file_id' => $file_id]
                 );
             }
 
