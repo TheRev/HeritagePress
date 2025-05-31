@@ -216,9 +216,10 @@ class Gedcom7Validator {
     /**
      * Validate date structure
      */
-    private function validateDate($date) {
-        if (empty($date['value'])) {
-            return;
+    public function validateDate($date) {
+        // Ensure $date is an array and has a 'value' key before accessing it.
+        if (!is_array($date) || !isset($date['value']) || empty($date['value'])) {
+            return true; // Consider empty or malformed date as valid for this check, or decide policy
         }
 
         $valid = false;
@@ -230,34 +231,51 @@ class Gedcom7Validator {
         }
 
         if (!$valid) {
-            $this->addWarning("Invalid date format: {$date['value']}");
+            // Use a more specific check for the tag, if available, for better error reporting.
+            $tagName = isset($date['tag']) ? $date['tag'] : 'DATE';
+            $this->addWarning("Invalid date format for {$tagName}: {$date['value']}");
+            return false; // Return false if invalid
         }
+        return true; // Return true if valid
     }
 
     /**
      * Validate name structure
      */
-    private function validateName($name) {
+    public function validateName($name) {
+        // Ensure $name is an array and has a 'value' key.
+        if (!is_array($name) || !isset($name['value'])) {
+            $this->addWarning('Malformed NAME structure or missing value.');
+            return false;
+        }
+        
         if (empty($name['value'])) {
             $this->addWarning('Empty name value');
-            return;
+            return false; // Return false if invalid
         }
 
         // Check for proper name format (given name /surname/)
         if (!preg_match('/^[^\/]*\/[^\/]*\/.*$/', $name['value']) && 
             !preg_match('/^[^\/]*\/[^\/]*$/', $name['value'])) {
             $this->addWarning("Invalid name format: {$name['value']}");
+            return false; // Return false if invalid
         }
 
-        if (isset($name['children'])) {
+        if (isset($name['children']) && is_array($name['children'])) {
             foreach ($name['children'] as $part) {
-                if ($part['tag'] === 'GIVN' && empty($part['value'])) {
-                    $this->addWarning('Empty given name');
-                } elseif ($part['tag'] === 'SURN' && empty($part['value'])) {
-                    $this->addWarning('Empty surname');
+                // Ensure $part is an array and has 'tag' and 'value' keys before accessing them.
+                if (is_array($part) && isset($part['tag'])) {
+                    if ($part['tag'] === 'GIVN' && (!isset($part['value']) || empty($part['value']))) {
+                        $this->addWarning('Empty given name (GIVN tag present but no value).');
+                    } elseif ($part['tag'] === 'SURN' && (!isset($part['value']) || empty($part['value']))) {
+                        $this->addWarning('Empty surname (SURN tag present but no value).');
+                    }
+                } else {
+                    $this->addWarning("Malformed part in NAME structure for value: {$name['value']}");
                 }
             }
         }
+        return true; // Return true if valid
     }
 
     /**
@@ -308,16 +326,23 @@ class Gedcom7Validator {
         }
 
         $hasFile = false;
-        foreach ($media['data'] as $item) {
-            if ($item['tag'] === 'FILE') {
-                $hasFile = true;
-                if (empty($item['value'])) {
-                    $this->addError("Empty file path in media {$media['id']}");
-                }
-                if (!isset($item['children']) || !$this->hasTag($item, 'FORM')) {
-                    $this->addWarning("Media file {$media['id']} missing FORM tag");
+        // Check if $media['data'] exists and is an array before iterating
+        if (isset($media['data']) && is_array($media['data'])) {
+            foreach ($media['data'] as $item) {
+                if ($item['tag'] === 'FILE') {
+                    $hasFile = true;
+                    if (empty($item['value'])) {
+                        $this->addError("Empty file path in media {$media['id']}");
+                    }
+                    // Ensure $item['children'] exists before calling hasTag, or adjust hasTag to handle null
+                    if (!isset($item['children']) || !$this->hasTag($item, 'FORM')) { 
+                        $this->addWarning("Media file {$media['id']} missing FORM tag or children structure incorrect");
+                    }
                 }
             }
+        } else {
+            // If $media['data'] is not set or not an array, it might indicate a structural issue with the media record itself.
+            $this->addWarning("Media record {$media['id']} has no 'data' array or it's malformed.");
         }
 
         if (!$hasFile) {
@@ -357,9 +382,20 @@ class Gedcom7Validator {
      * Check if a record has a specific tag
      */
     private function hasTag($record, $tag) {
-        foreach ($record['data'] as $item) {
-            if ($item['tag'] === $tag) {
-                return true;
+        // Check if $record['data'] exists and is an array before iterating
+        if (isset($record['data']) && is_array($record['data'])) {
+            foreach ($record['data'] as $item) {
+                if ($item['tag'] === $tag) {
+                    return true;
+                }
+            }
+        }
+        // Also check if $record['children'] exists for nested structures, if applicable to hasTag's usage
+        if (isset($record['children']) && is_array($record['children'])) {
+            foreach ($record['children'] as $child_item) {
+                if ($child_item['tag'] === $tag) {
+                    return true;
+                }
             }
         }
         return false;
@@ -369,9 +405,20 @@ class Gedcom7Validator {
      * Get the value of a specific tag from a record
      */
     private function getTagValue($record, $tag) {
-        foreach ($record['data'] as $item) {
-            if ($item['tag'] === $tag) {
-                return $item['value'];
+        // Check if $record['data'] exists and is an array before iterating
+        if (isset($record['data']) && is_array($record['data'])) {
+            foreach ($record['data'] as $item) {
+                if ($item['tag'] === $tag) {
+                    return $item['value'];
+                }
+            }
+        }
+        // Also check if $record['children'] exists for nested structures, if applicable to getTagValue's usage
+        if (isset($record['children']) && is_array($record['children'])) {
+            foreach ($record['children'] as $child_item) {
+                if ($child_item['tag'] === $tag) {
+                    return $child_item['value'];
+                }
             }
         }
         return null;

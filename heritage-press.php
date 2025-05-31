@@ -41,6 +41,31 @@ require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin-debug.php';
 // Add diagnostics
 require_once HERITAGE_PRESS_PLUGIN_DIR . 'menu-diagnostic.php';
 
+// Add Evidence Remover tool menu
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/evidence-remover-menu.php';
+
+// Add Evidence File Cleanup tool
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/evidence-file-cleanup.php';
+
+// Add System Health Check tool
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/health-check-menu.php';
+
+// Add Integration Test tool
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/integration-test-menu.php';
+
+// Add AJAX Endpoint Tester tool
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/ajax-tester-menu.php';
+
+// Add Table Verification tool
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/table-verification-menu.php';
+
+// Phase 2 - Family Relationships
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/tools/family-relationships-test-menu.php';
+
+// Add Evidence Removal notices
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/notices/evidence-removal-notice.php';
+require_once HERITAGE_PRESS_PLUGIN_DIR . 'admin/notices/evidence-removal-success-notice.php';
+
 // Initialize the plugin
 if (class_exists('HeritagePress\Core\Plugin')) {
     $heritage_press = HeritagePress\Core\Plugin::get_instance();

@@ -7,8 +7,6 @@
 
 namespace HeritagePress\Core;
 
-use HeritagePress\Admin\Evidence_Admin;
-
 class Plugin {
     /**
      * Instance of this class
@@ -68,8 +66,8 @@ class Plugin {
         // Initialize admin
         if (is_admin()) {
             // Initialize Evidence Admin
-            $evidence_admin = new Evidence_Admin();
-            $evidence_admin->init();
+            // $evidence_admin = new Evidence_Admin();
+            // $evidence_admin->init();
         }
 
         // Initialize public

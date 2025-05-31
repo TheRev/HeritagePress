@@ -77,12 +77,26 @@ class GedcomExportHandler {
      */
     private function exportData($item, $parentLevel = 1) {
         // Add the current item
-        $this->addLine($parentLevel, $item['tag'], $item['value']);
+        $tag = isset($item['tag']) ? $item['tag'] : ''; // Ensure 'tag' key exists
+        $value = isset($item['value']) ? $item['value'] : ''; // Ensure 'value' key exists
+
+        if (empty($tag)) { // Do not output line if tag is missing
+            // Optionally log a warning or error here
+            // error_log("Warning: Missing tag in exportData for item: " . print_r($item, true));
+            return;
+        }
+
+        $this->addLine($parentLevel, $tag, $value);
 
         // Add any children
-        if (!empty($item['children'])) {
+        if (!empty($item['children']) && is_array($item['children'])) {
             foreach ($item['children'] as $child) {
-                $this->exportData($child, $parentLevel + 1);
+                if (is_array($child)) { // Ensure child is an array before recursing
+                    $this->exportData($child, $parentLevel + 1);
+                } else {
+                    // Optionally log a warning or error here
+                    // error_log("Warning: Invalid child structure in exportData for item: " . print_r($item, true));
+                }
             }
         }
     }

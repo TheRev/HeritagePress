@@ -350,23 +350,25 @@ class Database_Manager {
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             uuid varchar(36) NOT NULL,
             source_id bigint(20) UNSIGNED NOT NULL,
-            citation_type ENUM('FIRST', 'SUBSEQUENT', 'BIBLIOGRAPHY') NOT NULL,
-            first_ref_citation_id bigint(20) UNSIGNED NULL,
-            page_info varchar(255) NULL,
-            detail_info text NULL,
-            formatted_text text NOT NULL,
+            individual_id bigint(20) UNSIGNED NULL,
+            family_id bigint(20) UNSIGNED NULL,
+            event_id bigint(20) UNSIGNED NULL,
+            page_number varchar(255) NULL,
+            quality_assessment ENUM('primary', 'secondary', 'other') NULL,
+            confidence_score tinyint NULL,
+            citation_text text NULL,
             notes text NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY uuid (uuid),
             KEY source_id (source_id),
-            KEY citation_type (citation_type),
-            KEY first_ref_citation_id (first_ref_citation_id),
-            CONSTRAINT fk_citations_source FOREIGN KEY (source_id) 
-                REFERENCES {$table_prefix}sources(id) ON DELETE CASCADE,
-            CONSTRAINT fk_citations_first_ref FOREIGN KEY (first_ref_citation_id) 
-                REFERENCES {$table_prefix}citations(id) ON DELETE SET NULL
+            KEY individual_id (individual_id),
+            KEY family_id (family_id),
+            KEY event_id (event_id),
+            CONSTRAINT fk_citations_source FOREIGN KEY (source_id) REFERENCES {$table_prefix}sources(id),
+            CONSTRAINT fk_citations_individual FOREIGN KEY (individual_id) REFERENCES {$table_prefix}individuals(id),
+            CONSTRAINT fk_citations_family FOREIGN KEY (family_id) REFERENCES {$table_prefix}families(id),
+            CONSTRAINT fk_citations_event FOREIGN KEY (event_id) REFERENCES {$table_prefix}events(id)
         ) $charset_collate;";
 
         // Citation References table (for linking citations to entities)
@@ -448,7 +450,7 @@ class Database_Manager {
 
         $sql[] = "ALTER TABLE {$table_prefix}individual_identifiers
             ADD CONSTRAINT fk_individual_identifiers_shared_note FOREIGN KEY (shared_note_id) REFERENCES {$table_prefix}shared_notes(id) ON DELETE SET NULL;";
-            
+
         $sql[] = "ALTER TABLE {$table_prefix}individual_facts
             ADD CONSTRAINT fk_individual_facts_shared_note FOREIGN KEY (shared_note_id) REFERENCES {$table_prefix}shared_notes(id) ON DELETE SET NULL;";
 

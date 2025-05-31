@@ -2,6 +2,12 @@
 
 A comprehensive genealogy management system for WordPress with GEDCOM 7.0 support and extensible architecture.
 
+> **IMPORTANT UPDATE (May 2025)**: The Heritage Press plugin has been refactored from an Evidence Explained citation system to a standard genealogy plugin. This simplifies the plugin while preserving all core genealogy functionality (individuals, families, events, sources). 
+>
+> **Documentation**:
+> - [Evidence Removal Guide](EVIDENCE-REMOVAL-README.md) - Details on the changes and migration tools
+> - [WordPress Integration Testing](WORDPRESS-INTEGRATION-TESTING.md) - How to test the plugin in a WordPress environment
+
 ## Development Plan
 
 ### Phase 1: Foundation Setup

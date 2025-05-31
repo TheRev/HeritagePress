@@ -14,8 +14,7 @@ class GedcomDatabaseHandler {
      * @param array $data GEDCOM data to store
      * @param string $file_id Optional GEDCOM file identifier
      * @return bool True on success, false on failure
-     */
-    public function storeGedcomData($data, $file_id = null) {
+     */    public function storeGedcomData($data, $file_id = null) {
         global $wpdb;
         
         // Generate file ID if not provided
@@ -23,21 +22,37 @@ class GedcomDatabaseHandler {
             $file_id = wp_generate_uuid4();
         }
         
+        // Create relationship handler
+        $relationship_handler = new \HeritagePress\GEDCOM\GedcomFamilyRelationshipHandler($file_id);
+        
         // Start transaction
         $wpdb->query('START TRANSACTION');
         
         try {
+            $individual_ids_map = []; // Map GEDCOM ID to database ID
+            $family_ids_map = []; // Map GEDCOM ID to database ID
+        
             // Store individuals
             if (!empty($data['individuals'])) {
                 foreach ($data['individuals'] as $individual) {
-                    $this->storeIndividual($individual, $file_id);
+                    $db_id = $this->storeIndividual($individual, $file_id);
+                    if ($db_id) {
+                        $individual_ids_map[$individual['id']] = $db_id;
+                        // Process this individual for family relationships
+                        $relationship_handler->processIndividual($individual['data'], $individual['id'], $db_id);
+                    }
                 }
             }
 
             // Store families
             if (!empty($data['families'])) {
                 foreach ($data['families'] as $family) {
-                    $this->storeFamily($family, $file_id);
+                    $db_id = $this->storeFamily($family, $file_id);
+                    if ($db_id) {
+                        $family_ids_map[$family['id']] = $db_id;
+                        // Store the family ID for relationship creation
+                        $relationship_handler->processFamily($family['id'], $db_id);
+                    }
                 }
             }
 
@@ -47,6 +62,10 @@ class GedcomDatabaseHandler {
                     $this->storeSource($source, $file_id);
                 }
             }
+            
+            // Create family relationships after individuals and families have been stored
+            $relationship_stats = $relationship_handler->createRelationships();
+            error_log('Created family relationships: ' . print_r($relationship_stats, true));
 
             // Store media
             if (!empty($data['media'])) {

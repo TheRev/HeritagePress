@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "bmewburn.vscode-intelephense-client"
+    ],
+    "unwantedRecommendations": [
+        "zobo.php-intellisense"
+    ]
+}

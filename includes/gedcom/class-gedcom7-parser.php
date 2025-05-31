@@ -4,6 +4,7 @@ namespace HeritagePress\GEDCOM;
 use HeritagePress\GEDCOM\GedcomConverter;
 use HeritagePress\GEDCOM\GedcomParser;
 use HeritagePress\GEDCOM\Gedcom7Validator;
+use HeritagePress\GEDCOM\GedcomFamilyRelationshipHandler;
 
 class Gedcom7Parser {
     private $file_path;
@@ -17,8 +18,12 @@ class Gedcom7Parser {
     private $media_handler;
     private $place_handler;
     private $recovery_handler;
+    private $relationship_handler;
     private $cache;
     private $db_handler;
+    private $tree_id;
+    private $data = []; // Added declaration for $this->data
+    private $media_files = []; // Added declaration for $this->media_files based on usage in openGedcomFile
 
     public function __construct($file_path) {
         $this->file_path = $file_path;
@@ -28,6 +33,9 @@ class Gedcom7Parser {
         $this->recovery_handler = new GedcomRecoveryHandler();
         $this->cache = new \HeritagePress\Core\GedcomCache();
         $this->db_handler = new \HeritagePress\Database\GedcomDatabaseHandler();
+        
+        // Tree ID will be set once we know it (after tree creation or identification)
+        $this->tree_id = null;
     }
 
     public function wasConverted() {
@@ -39,6 +47,7 @@ class Gedcom7Parser {
         $cache_key = md5_file($this->file_path);
         $cached_data = $this->cache->get($cache_key);
         if ($cached_data) {
+            $this->data = $cached_data; // Ensure $this->data is populated from cache
             return $cached_data;
         }
 
@@ -99,11 +108,11 @@ class Gedcom7Parser {
         if (!$isGedcom7) {
             // For GEDCOM 5.5.1 or earlier, use the old parser and convert
             $this->was_converted = true;
-            $oldParser = new GedcomParser($this->file_path);
+            $oldParser = new GedcomParser($this->file_path); // Assumes GedcomParser exists in the same namespace or is aliased
             $oldData = $oldParser->parse();
             
             // Convert to GEDCOM 7.0
-            $converter = new GedcomConverter($oldData);
+            $converter = new GedcomConverter($oldData); // Assumes GedcomConverter exists
             $data = $converter->convert();
             $this->version = '7.0'; // Updated version after conversion
         } else {
@@ -138,16 +147,18 @@ class Gedcom7Parser {
             $this->recovery_handler->handleError('Database storage failed: ' . $e->getMessage());
         }
 
+        $this->data = $data; // Assign to $this->data before caching and returning
+
         // Cache the results
-        $this->cache->set($cache_key, $data);
+        $this->cache->set($cache_key, $this->data);
 
         // Trigger after parse event
         \HeritagePress\Core\GedcomEvents::trigger('gedcom_after_parse', [
             'file' => $this->file_path,
-            'data' => $data
+            'data' => $this->data
         ]);
 
-        return $data;
+        return $this->data;
     }
 
     /**
@@ -257,8 +268,19 @@ class Gedcom7Parser {
                 return;
             }
 
-            // Process data based on type
             if ($this->current_record) {
+                // Handle FAMC/FAMS Roles
+                if ($parsed['tag'] === 'ROLE' && !empty($this->record_stack)) {
+                    // Get the potential parent from the top of the stack
+                    $parent_record_on_stack = &$this->record_stack[count($this->record_stack) - 1];
+                    // Check if the parent is indeed one level above and is FAMC or FAMS
+                    if ($parent_record_on_stack['level'] === $parsed['level'] - 1 &&
+                        ($parent_record_on_stack['tag'] === 'FAMC' || $parent_record_on_stack['tag'] === 'FAMS')) {
+                        $parent_record_on_stack['role'] = $parsed['value'];
+                        return; // Role has been consumed by the parent, so we don't process it as a separate item
+                    }
+                }
+
                 $data_point = [
                     'level' => $parsed['level'],
                     'tag' => $parsed['tag'],
@@ -325,9 +347,7 @@ class Gedcom7Parser {
                 case 'REPO':
                     $data['repositories'][] = $this->current_record;
                     break;
-                case 'OBJE':
-                    $data['media'][] = $this->current_record;
-                    break;
+                // Removed duplicate 'OBJE' case here
                 case 'NOTE':
                     $data['notes'][] = $this->current_record;
                     break;
@@ -415,7 +435,7 @@ class Gedcom7Parser {
      * Export to GEDCOM format
      */
     public function export($target_version = '7.0') {
-        $exporter = new GedcomExportHandler($this->data, $target_version);
+        $exporter = new GedcomExportHandler($this->data, $target_version); // Now uses $this->data
         return $exporter->export();
     }
 
