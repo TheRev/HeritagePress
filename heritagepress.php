@@ -1,93 +1,95 @@
 <?php
 /**
+ * HeritagePress - WordPress Genealogy Plugin
+ *
+ * @package     HeritagePress
+ * @author      HeritagePress Team
+ * @copyright   2023 HeritagePress
+ * @license     GPL-2.0+
+ *
+ * @wordpress-plugin
  * Plugin Name: HeritagePress
- * Plugin URI: https://github.com/TheRev/HeritagePress
- * Description: A comprehensive genealogy management plugin for WordPress
- * Version: 1.0.0
- * Author: Joseph Cox
- * Author URI: https://github.com/TheRev
+ * Plugin URI:  https://heritagepress.com
+ * Description: A comprehensive genealogy and family history research plugin for WordPress
+ * Version:     1.0.0
+ * Author:      HeritagePress Team
+ * Author URI:  https://heritagepress.com
  * Text Domain: heritagepress
- * License: GPL v2 or later
- * Requires at least: 5.8
- * Requires PHP: 7.4
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-// Prevent direct access to this file
-if (!defined('ABSPATH')) {
-    exit;
+// Prevent direct file access
+if (!defined('WPINC')) {
+    die;
 }
 
-// Define plugin constants
+// Plugin version
 define('HP_PLUGIN_VERSION', '1.0.0');
-define('HP_PLUGIN_DIR', plugin_dir_path(__FILE__));
+
+// Plugin paths
+define('HP_PLUGIN_FILE', __FILE__);
+define('HP_PLUGIN_PATH', dirname(HP_PLUGIN_FILE) . '/');
 define('HP_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-// Use Composer's autoloader
-require_once HP_PLUGIN_DIR . 'vendor/autoload.php';
-
-// Initialize the plugin
-add_action('plugins_loaded', 'heritagepress_init');
+// Load autoloader
+require_once HP_PLUGIN_PATH . 'includes/class-heritagepress-autoloader.php';
+HeritagePress_Autoloader::register();
 
 /**
- * Initialize the plugin
+ * Activate the plugin
  */
-function heritagepress_init() {
+function heritagepress_activate()
+{
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+    // Initialize database tables
+    $db_manager = new HeritagePress\Database\Manager();
+    $db_manager->init_tables();
+
+    // Add capabilities
+    $role = get_role('administrator');
+    if ($role) {
+        $role->add_cap('manage_heritagepress');
+    }
+
+    // Clear rewrite rules
+    flush_rewrite_rules();
+}
+
+/**
+ * Deactivate the plugin
+ */
+function heritagepress_deactivate()
+{
+    // Remove capabilities
+    $role = get_role('administrator');
+    if ($role) {
+        $role->remove_cap('manage_heritagepress');
+    }
+
+    // Clear rewrite rules
+    flush_rewrite_rules();
+}
+
+/**
+ * Initialize plugin
+ */
+function heritagepress_init()
+{
     // Initialize admin interface
     if (is_admin()) {
         $admin = new HeritagePress\Admin\Admin();
         $admin->init();
     }
 
-    // Load text domain for translations
+    // Load text domain
     load_plugin_textdomain('heritagepress', false, dirname(plugin_basename(__FILE__)) . '/languages');
 }
 
-// Activation Hook
+// Register activation/deactivation hooks
 register_activation_hook(__FILE__, 'heritagepress_activate');
-
-// Deactivation Hook
 register_deactivation_hook(__FILE__, 'heritagepress_deactivate');
 
-/**
- * Plugin activation
- */
-function heritagepress_activate() {
-    // Check PHP version
-    if (version_compare(PHP_VERSION, '7.4', '<')) {
-        deactivate_plugins(plugin_basename(__FILE__));
-        wp_die('HeritagePress requires PHP 7.4 or higher.');
-    }
-
-    // Check WordPress version
-    if (version_compare($GLOBALS['wp_version'], '5.8', '<')) {
-        deactivate_plugins(plugin_basename(__FILE__));
-        wp_die('HeritagePress requires WordPress 5.8 or higher.');
-    }
-
-    // Initialize database tables
-    $db_manager = new HeritagePress\Database\Manager();
-    $db_manager->init_tables();
-
-    // Set version in options
-    update_option('heritagepress_version', HP_PLUGIN_VERSION);
-
-    // Create necessary folders
-    wp_mkdir_p(wp_upload_dir()['basedir'] . '/heritagepress');
-
-    // Add capabilities to administrators
-    $role = get_role('administrator');
-    if ($role) {
-        $role->add_cap('manage_heritagepress');
-    }
-}
-
-/**
- * Plugin deactivation
- */
-function heritagepress_deactivate() {
-    // Remove capabilities from administrators
-    $role = get_role('administrator');
-    if ($role) {
-        $role->remove_cap('manage_heritagepress');
-    }
-}
+// Initialize plugin
+add_action('init', 'heritagepress_init');

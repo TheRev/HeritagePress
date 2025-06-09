@@ -1,0 +1,90 @@
+<?php
+/**
+ * Plugin Name: HeritagePress
+ * Plugin URI: https://github.com/TheRev/HeritagePress
+ * Description: A comprehensive genealogy management plugin for WordPress
+ * Version: 1.0.0
+ * Author: Joseph Cox
+ * Author URI: https://github.com/TheRev
+ * Text Domain: heritagepress
+ * License: GPL v2 or later
+ * Requires at least: 5.8
+ * Requires PHP: 7.4
+ */
+
+// Prevent direct access to this file
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Define plugin constants
+define('HP_PLUGIN_VERSION', '1.0.0');
+define('HP_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('HP_PLUGIN_URL', plugin_dir_url(__FILE__));
+
+// Use Composer's autoloader
+require_once HP_PLUGIN_DIR . 'vendor/autoload.php';
+
+/**
+ * Initialize database tables on plugin activation
+ */
+function heritagepress_activate() {
+    require_once HP_PLUGIN_DIR . 'includes/Database/Manager.php';
+    $db_manager = new HeritagePress\Database\Manager();
+    $db_manager->init_tables();
+}
+
+/**
+ * Initialize plugin components
+ */
+function heritagepress_init() {
+    if (is_admin()) {
+        require_once HP_PLUGIN_DIR . 'includes/Admin/Admin.php';
+        $admin = new HeritagePress\Admin\Admin();
+        $admin->init();
+    }
+}
+
+// Register activation hook
+register_activation_hook(__FILE__, 'heritagepress_activate');
+
+// Initialize plugin
+add_action('plugins_loaded', 'heritagepress_init');
+
+/**
+ * Plugin activation callback
+ */
+function heritagepress_activate() {
+    global $wpdb;
+    
+    // Initialize database tables
+    require_once HP_PLUGIN_DIR . 'includes/Database/Manager.php';
+    $db_manager = new HeritagePress\Database\Manager();
+    $db_manager->init_tables();
+}
+
+/**
+ * Plugin deactivation callback
+ */
+function heritagepress_deactivate() {
+    // Cleanup tasks will go here
+}
+
+/**
+ * Initialize the plugin
+ */
+function heritagepress_init() {
+    // Initialize admin interface
+    if (is_admin()) {
+        $admin = new HeritagePress\Admin\Admin();
+        $admin->init();
+    }
+    
+    // Load text domain for translations
+    load_plugin_textdomain('heritagepress', false, dirname(plugin_basename(__FILE__)) . '/languages');
+}
+
+// Register hooks
+register_activation_hook(__FILE__, 'heritagepress_activate');
+register_deactivation_hook(__FILE__, 'heritagepress_deactivate');
+add_action('plugins_loaded', 'heritagepress_init');

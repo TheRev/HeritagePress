@@ -81,6 +81,36 @@ class Admin {    /**
             [$this, 'render_sources_page']
         );
 
+        // Media Library submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Media Library', 'heritagepress'),
+            __('Media Library', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-media',
+            [$this, 'render_media_page']
+        );
+
+        // DNA Tests submenu
+        add_submenu_page(
+            'heritagepress',
+            __('DNA Tests', 'heritagepress'),
+            __('DNA Tests', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-dna',
+            [$this, 'render_dna_page']
+        );
+
+        // GEDCOM Import/Export submenu
+        add_submenu_page(
+            'heritagepress',
+            __('GEDCOM', 'heritagepress'),
+            __('GEDCOM', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-gedcom',
+            [$this, 'render_gedcom_page']
+        );
+
         // Settings submenu
         add_submenu_page(
             'heritagepress',
@@ -136,36 +166,6 @@ class Admin {    /**
             __('Families', 'heritagepress'),
             __('Families', 'heritagepress'),
             'manage_options',
-            'heritagepress-families',
-            [$this, 'render_families_page']
-        );
-
-        // Sources submenu
-        add_submenu_page(
-            'heritagepress',
-            __('Sources', 'heritagepress'),
-            __('Sources', 'heritagepress'),
-            'manage_options',
-            'heritagepress-sources',
-            [$this, 'render_sources_page']
-        );
-
-        // Settings submenu
-        add_submenu_page(
-            'heritagepress',
-            __('Settings', 'heritagepress'),
-            __('Settings', 'heritagepress'),
-            'manage_options',
-            'heritagepress-settings',
-            [$this, 'render_settings_page']
-        );
-    }
-
-    /**
-     * Enqueue admin scripts and styles
-     *
-     * @param string $hook_suffix Current admin page
-     */
     public function enqueue_admin_scripts($hook_suffix)
     {
         // Only load on HeritagePress admin pages

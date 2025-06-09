@@ -10,22 +10,24 @@
         120
     ],
     "editor.renderWhitespace": "boundary",
-    // PHP specific settings
-    "php.suggest.basic": false,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.suggestSelection": "first", // PHP specific settings
+    "php.suggest.basic": true,
     "[php]": {
         "editor.formatOnSave": true
     },
     "php.validate.enable": true,
     "php.validate.run": "onSave",
+    "php.executablePath": "c:\\xampp\\php\\php.exe",
+    // PHP Namespace Resolver
+    "namespaceResolver.sortAlphabetically": true,
+    "namespaceResolver.leadingSeparator": true,
+    "namespaceResolver.autoSort": true,
     // WordPress specific settings
     "phpcs.standard": "WordPress",
     "phpcbf.standard": "WordPress",
     "phpcbf.onsave": true,
-    "intelephense.environment.includePaths": [
-        "../../..",
-        "../../../wp-includes",
-        "../../../wp-admin"
-    ],
     // File associations
     "files.associations": {
         "*.php": "php",
@@ -47,18 +49,51 @@
         "**/bower_components": true,
         "**/*.code-search": true,
         "**/vendor": true
-    }, // Path intellisense for WordPress
+    },
+    // Path intellisense for WordPress
     "path-intellisense.mappings": {
         "/": "${workspaceRoot}",
         "includes": "${workspaceRoot}/includes",
         "tng": "c:/xampp/htdocs/tng",
         "archived": "C:/Users/Joe/archived_HeritagePress"
-    },
-    // Git settings
+    }, // Git settings
     "git.enableSmartCommit": true,
     "git.confirmSync": false,
     "git.autofetch": true,
+    // PHP Namespace Resolver settings
+    "namespaceResolver.sortAlphabetically": true,
+    "namespaceResolver.leadingSeparator": true,
+    "namespaceResolver.autoSort": true,
+    "namespaceResolver.showMessageOnStatusBar": true,
     // Debug configurations
     "debug.allowBreakpointsEverywhere": true,
-    "php.debug.ideKey": "VSCODE"
+    "php.debug.ideKey": "VSCODE",
+    "debug.javascript.autoAttachFilter": "smart",
+    // Workbench settings
+    "workbench.colorCustomizations": {
+        "editorError.foreground": "#ff0000",
+        "editorWarning.foreground": "#ffa500",
+        "editorInfo.foreground": "#00ff00"
+    },
+    // Terminal settings
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        }
+    },
+    // PHP Namespace Resolver settings
+    "namespaceResolver.sortAlphabetically": true,
+    "namespaceResolver.leadingSeparator": true,
+    "namespaceResolver.autoSort": true,
+    "namespaceResolver.exclude": [
+        "**/vendor/**",
+        "**/node_modules/**"
+    ],
+    "namespaceResolver.showMessageOnStatusBar": true,
+    "namespaceResolver.includeViewPaths": [
+        "includes/**/*.php",
+        "tests/**/*.php"
+    ]
 }
