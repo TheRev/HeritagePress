@@ -1,0 +1,970 @@
+<?php
+/**
+ * Admin Interface Manager
+ *
+ * Handles all WordPress backend administration functionality
+ * for the HeritagePress genealogy plugin.
+ *
+ * @package HeritagePress
+ * @subpackage Admin
+ * @since 1.0.0
+ */
+
+namespace HeritagePress\Admin;
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
+/**
+ * Admin class
+ */
+class Admin {    /**
+     * Initialize the admin interface
+     */
+    public function init() {
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+
+    /**
+     * Add admin menu items
+     */    public function add_admin_menu() {
+        // Main menu
+        add_menu_page(
+            __('HeritagePress', 'heritagepress'),
+            __('HeritagePress', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress',
+            [$this, 'render_main_page'],
+            'dashicons-groups',
+            30
+        );
+
+        // Dashboard submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Dashboard', 'heritagepress'),
+            __('Dashboard', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress',
+            [$this, 'render_main_page']
+        );
+
+        // Individuals submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Individuals', 'heritagepress'),
+            __('Individuals', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-individuals',
+            [$this, 'render_individuals_page']
+        );
+
+        // Families submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Families', 'heritagepress'),
+            __('Families', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-families',
+            [$this, 'render_families_page']
+        );
+
+        // Sources submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Sources', 'heritagepress'),
+            __('Sources', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-sources',
+            [$this, 'render_sources_page']
+        );
+
+        // Settings submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Settings', 'heritagepress'),
+            __('Settings', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-settings',
+            [$this, 'render_settings_page']
+        );
+    }    /**
+     * Enqueue admin assets
+     *
+     * @param string $hook The current admin page
+     */
+    public function enqueue_assets($hook) {
+        if (!strpos($hook, 'heritagepress')) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'heritagepress-admin',
+            HP_PLUGIN_URL . 'assets/css/admin.css',
+            [],
+            HP_PLUGIN_VERSION
+        );
+
+        wp_enqueue_script(
+            'heritagepress-admin',
+            HP_PLUGIN_URL . 'assets/js/admin.js',
+            ['jquery'],
+            HP_PLUGIN_VERSION,
+            true
+        );
+    }
+
+    /**
+     * Add submenu pages
+     */
+    public function add_submenu_pages() {
+        // Individuals submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Individuals', 'heritagepress'),
+            __('Individuals', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-individuals',
+            [$this, 'render_individuals_page']
+        );
+
+        // Families submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Families', 'heritagepress'),
+            __('Families', 'heritagepress'),
+            'manage_options',
+            'heritagepress-families',
+            [$this, 'render_families_page']
+        );
+
+        // Sources submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Sources', 'heritagepress'),
+            __('Sources', 'heritagepress'),
+            'manage_options',
+            'heritagepress-sources',
+            [$this, 'render_sources_page']
+        );
+
+        // Settings submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Settings', 'heritagepress'),
+            __('Settings', 'heritagepress'),
+            'manage_options',
+            'heritagepress-settings',
+            [$this, 'render_settings_page']
+        );
+    }
+
+    /**
+     * Enqueue admin scripts and styles
+     *
+     * @param string $hook_suffix Current admin page
+     */
+    public function enqueue_admin_scripts($hook_suffix)
+    {
+        // Only load on HeritagePress admin pages
+        if (strpos($hook_suffix, 'heritagepress') === false) {
+            return;
+        }        // Admin CSS
+        wp_enqueue_style(
+            'heritagepress-admin',
+            $this->plugin_url . 'assets/css/admin.css',
+            [],
+            HERITAGEPRESS_VERSION
+        );        // Heritage-Style CSS
+        wp_enqueue_style(
+            'heritagepress-heritage-style',
+            $this->plugin_url . 'assets/css/heritage-style.css',
+            ['heritagepress-admin'],
+            HERITAGEPRESS_VERSION
+        );
+
+        // Admin JavaScript
+        wp_enqueue_script(
+            'heritagepress-admin',
+            $this->plugin_url . 'assets/js/admin.js',
+            ['jquery', 'wp-util'],
+            HERITAGEPRESS_VERSION,
+            true
+        );        // Heritage-Style JavaScript
+        wp_enqueue_script(
+            'heritagepress-heritage-style',
+            $this->plugin_url . 'assets/js/heritage-style.js',
+            ['jquery', 'heritagepress-admin'],
+            HERITAGEPRESS_VERSION,
+            true
+        );
+
+        // Localize script for AJAX
+        wp_localize_script('heritagepress-admin', 'heritagepress_ajax', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('heritagepress_ajax_nonce'),
+            'strings' => [
+                'search_placeholder' => __('Search individuals...', 'heritagepress'),
+                'loading' => __('Loading...', 'heritagepress'),
+                'error' => __('An error occurred', 'heritagepress'),
+                'confirm_delete' => __('Are you sure you want to delete this record?', 'heritagepress')
+            ]
+        ]);        // Localize Heritage-specific strings
+        wp_localize_script('heritagepress-heritage-style', 'heritagepress_heritage', [
+            'strings' => [
+                'enter_person_id' => __('Please enter a Person ID', 'heritagepress'),
+                'id_available' => __('ID available', 'heritagepress'),
+                'id_taken' => __('ID already taken', 'heritagepress'),
+                'invalid_merge' => __('Please enter two different Person IDs to merge', 'heritagepress'),
+                'confirm_merge' => __('Are you sure you want to merge these individuals? This action cannot be undone.', 'heritagepress'),
+                'place_search' => __('Place search functionality will be implemented in a future version', 'heritagepress'),
+                'add_event' => __('Add New Event functionality will be implemented', 'heritagepress'),
+                'add_parent' => __('Add New Parent functionality will be implemented', 'heritagepress'),
+                'add_spouse' => __('Add New Spouse functionality will be implemented', 'heritagepress')
+            ],
+            'edit_url' => admin_url('admin.php?page=heritagepress-individuals&tab=edit&id=')
+        ]);
+          // Also localize for heritagepress_heritage_vars (alternative variable name)
+        wp_localize_script('heritagepress-heritage-style', 'heritagepress_heritage_vars', [
+            'add_event_text' => __('Add New Event functionality will be implemented', 'heritagepress'),
+            'add_parent_text' => __('Add New Parent functionality will be implemented', 'heritagepress'),
+            'add_spouse_text' => __('Add New Spouse functionality will be implemented', 'heritagepress')
+        ]);
+        
+        // Always enqueue Dashicons for icon support
+        wp_enqueue_style('dashicons');
+    }    // =============================================================================
+    // PAGE RENDERERS
+    // =============================================================================
+
+    /**
+     * Render dashboard page
+     */
+    public function render_dashboard_page()
+    {
+        $stats = $this->db_manager->get_statistics();
+        
+        include $this->plugin_path . 'includes/Admin/templates/dashboard.php';
+    }    /**
+     * Render trees page
+     */
+    public function render_trees_page()
+    {
+        $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+        $tree_id = isset($_GET['id']) ? intval($_GET['id']) : 0;        // Handle form submissions for tree operations
+        if (isset($_POST['action'])) {
+            switch ($_POST['action']) {
+                case 'create_tree':
+                    $this->handle_create_tree();
+                    break;
+                case 'update_tree':
+                    $this->handle_update_tree();
+                    break;
+            }        }
+
+        switch ($action) {
+            case 'add':
+                include $this->plugin_path . 'includes/Admin/templates/tree-edit.php';
+                break;
+            case 'edit':
+                if (!$tree_id) {
+                    wp_die(__('Tree ID required.', 'heritagepress'));
+                }
+                $tree = $this->db_manager->get_tree($tree_id);
+                if (!$tree) {
+                    wp_die(__('Tree not found.', 'heritagepress'));
+                }
+                include $this->plugin_path . 'includes/Admin/templates/tree-edit.php';
+                break;
+            case 'delete':
+                if (!$tree_id) {
+                    wp_die(__('Tree ID required.', 'heritagepress'));
+                }
+                $this->handle_delete_tree($tree_id);
+                break;
+            default:
+                // Debug: Check what's happening
+                error_log('HeritagePress: Rendering trees list page');
+                
+                try {
+                    $trees = $this->db_manager->get_trees();
+                    error_log('HeritagePress: Retrieved ' . count($trees) . ' trees');
+                } catch (Exception $e) {
+                    error_log('HeritagePress: Error getting trees: ' . $e->getMessage());
+                    $trees = [];
+                }
+                
+                $template_path = $this->plugin_path . 'includes/Admin/templates/trees-list.php';
+                error_log('HeritagePress: Including template: ' . $template_path);
+                
+                if (!file_exists($template_path)) {
+                    wp_die(__('Template file not found.', 'heritagepress'));
+                }
+                
+                include $template_path;
+                break;
+        }
+    }    /**
+     * Render individuals page with Heritage-style tabbed interface
+     */    public function render_individuals_page()
+    {
+        // Get current tab and individual ID
+        $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'search';
+        $individual_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        
+        // If editing an individual, switch to edit tab
+        if ($individual_id && $current_tab === 'search') {
+            $current_tab = 'edit';
+        }
+
+        // Prepare data based on current tab
+        switch ($current_tab) {
+            case 'edit':
+                if (!$individual_id) {
+                    wp_die(__('Individual ID required for editing.', 'heritagepress'));
+                }
+                $individual = $this->db_manager->get_individual($individual_id);
+                if (!$individual) {
+                    wp_die(__('Individual not found.', 'heritagepress'));
+                }
+                $names = $this->db_manager->get_individual_names($individual_id);
+                $events = $this->db_manager->get_individual_events($individual_id);
+                $event_types = $this->db_manager->get_event_types();
+                break;
+                
+            case 'review':                // Get individuals needing review (incomplete data)
+                global $wpdb;
+                $review_individuals = $wpdb->get_results(
+                    "SELECT i.*, n.given_names, n.surname,
+                            CASE 
+                                WHEN n.given_names IS NULL OR n.given_names = '' THEN 1
+                                WHEN n.surname IS NULL OR n.surname = '' THEN 1
+                                WHEN i.sex IS NULL OR i.sex = '' THEN 1
+                                ELSE 0
+                            END as needs_review
+                     FROM {$wpdb->prefix}heritagepress_individuals i
+                     LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+                     HAVING needs_review = 1
+                     ORDER BY i.updated_at DESC
+                     LIMIT 100"
+                );
+                break;
+                
+            case 'merge':
+                // Get potential duplicate individuals
+                $potential_duplicates = $this->get_potential_duplicates();
+                break;
+                
+            case 'add':
+                // Get event types for the add form
+                $event_types = $this->db_manager->get_event_types();
+                break;
+                
+            default: // search
+                // Handle search functionality
+                $search_term = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+                $individuals = [];
+                
+                if ($search_term) {
+                    $individuals = $this->db_manager->search_individuals($search_term);
+                } else {                    // Get recent individuals
+                    global $wpdb;
+                    $individuals = $wpdb->get_results(
+                        "SELECT i.*, n.given_names, n.surname 
+                         FROM {$wpdb->prefix}heritagepress_individuals i
+                         LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+                         ORDER BY i.updated_at DESC
+                         LIMIT 50"
+                    );
+                }
+                break;
+        }
+        
+        // Include the main tabbed template
+        include $this->plugin_path . 'includes/Admin/templates/individuals-tabbed.php';
+    }
+
+    /**
+     * Render families page
+     */
+    public function render_families_page()
+    {
+        include $this->plugin_path . 'includes/Admin/templates/families-list.php';
+    }
+
+    /**
+     * Render sources page
+     */
+    public function render_sources_page()
+    {
+        include $this->plugin_path . 'includes/Admin/templates/sources-list.php';
+    }    /**
+     * Render settings page
+     */
+    public function render_settings_page()
+    {        if (isset($_POST['submit'])) {
+            $this->handle_settings_save();
+        }
+        
+        include $this->plugin_path . 'includes/Admin/templates/settings.php';
+    }
+    
+    // =============================================================================
+    // INDIVIDUAL HELPERS
+    // =============================================================================
+
+    /**
+     * Get individuals with incomplete records for review
+     */
+    private function get_incomplete_individuals()
+    {
+        global $wpdb;                return $wpdb->get_results(
+            "SELECT i.*, n.given_names, n.surname,
+                    CASE 
+                        WHEN n.given_names IS NULL OR n.given_names = '' THEN 1
+                        WHEN n.surname IS NULL OR n.surname = '' THEN 1
+                        WHEN i.sex IS NULL OR i.sex = '' THEN 1
+                        ELSE 0
+                    END as needs_review
+             FROM {$wpdb->prefix}heritagepress_individuals i
+             LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+             HAVING needs_review = 1
+             ORDER BY i.updated_at DESC
+             LIMIT 100"
+        );
+    }
+
+    /**
+     * Get individuals missing birth information
+     */
+    private function get_individuals_missing_birth()
+    {
+        global $wpdb;
+          return $wpdb->get_results(
+            "SELECT i.*, n.given_names, n.surname
+             FROM {$wpdb->prefix}heritagepress_individuals i
+             LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+             LEFT JOIN {$wpdb->prefix}heritagepress_events e ON i.id = e.individual_id AND e.event_type = 'birth'
+             WHERE e.id IS NULL
+             ORDER BY n.surname, n.given_names
+             LIMIT 100"
+        );
+    }
+
+    /**
+     * Get individuals missing death information (who are likely deceased)
+     */
+    private function get_individuals_missing_death()
+    {
+        global $wpdb;
+        
+        return $wpdb->get_results(
+            "SELECT i.*, n.given_names, n.surname, birth_event.event_date as birth_date             FROM {$wpdb->prefix}heritagepress_individuals i
+             LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+             LEFT JOIN {$wpdb->prefix}heritagepress_events birth_event ON i.id = birth_event.individual_id AND birth_event.event_type = 'birth'
+             LEFT JOIN {$wpdb->prefix}heritagepress_events death_event ON i.id = death_event.individual_id AND death_event.event_type = 'death'
+             WHERE death_event.id IS NULL 
+               AND birth_event.event_date IS NOT NULL 
+               AND YEAR(CURDATE()) - YEAR(STR_TO_DATE(birth_event.event_date, '%Y-%m-%d')) > 90
+             ORDER BY birth_event.event_date
+             LIMIT 100"
+        );
+    }
+
+    /**
+     * Get potential duplicate individuals based on name similarity
+     */
+    private function get_potential_duplicates()
+    {
+        global $wpdb;
+        
+        // Find individuals with similar names
+        $duplicates = $wpdb->get_results(
+            "SELECT 
+                n1.individual_id as id1,
+                n2.individual_id as id2,
+                n1.given_names as given1,
+                n1.surname as surname1,
+                n2.given_names as given2,
+                n2.surname as surname2,
+                i1.created_at as created1,
+                i2.created_at as created2             FROM {$wpdb->prefix}heritagepress_names n1
+             JOIN {$wpdb->prefix}heritagepress_names n2 ON n1.surname = n2.surname 
+                AND n1.given_names = n2.given_names 
+                AND n1.individual_id < n2.individual_id
+                AND n1.is_primary = 1 
+                AND n2.is_primary = 1
+             JOIN {$wpdb->prefix}heritagepress_individuals i1 ON n1.individual_id = i1.id
+             JOIN {$wpdb->prefix}heritagepress_individuals i2 ON n2.individual_id = i2.id
+             ORDER BY n1.surname, n1.given_names
+             LIMIT 50"
+        );
+        
+        return $duplicates;
+    }    // =============================================================================
+    // INDIVIDUAL HANDLERS
+    // =============================================================================
+    
+    /**
+     * Handle individual creation
+     */    private function handle_create_individual()
+    {
+        if (!wp_verify_nonce($_POST['heritagepress_nonce'], 'heritagepress_add_individual')) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }
+
+        $individual = $_POST['individual'] ?? [];
+        
+        // Handle other gender
+        $sex = sanitize_text_field($individual['sex'] ?? '');
+        if ($sex === '' && !empty($individual['other_gender'])) {
+            $sex = sanitize_text_field($individual['other_gender']);
+        }
+        
+        $individual_data = [
+            'gedcom_id' => sanitize_text_field($individual['gedcom_id'] ?? ''),
+            'tree_id' => intval($individual['tree_id'] ?? 0),
+            'sex' => $sex,
+            'living' => isset($individual['living_flag']) ? intval($individual['living_flag']) : 0,
+            'private' => isset($individual['private']) ? intval($individual['private']) : 0,
+            'created_by' => get_current_user_id(),
+            'updated_by' => get_current_user_id()
+        ];
+
+        $individual_id = $this->db_manager->create_individual($individual_data);
+        
+        if ($individual_id) {            // Create primary name record with all name fields
+            $names = $_POST['names'] ?? [];
+            $name_data = [
+                'individual_id' => $individual_id,
+                'given_names' => sanitize_text_field($names['given_names'] ?? ''),
+                'surname' => sanitize_text_field($names['surname'] ?? ''),
+                'prefix' => sanitize_text_field($names['prefix'] ?? ''),
+                'suffix' => sanitize_text_field($names['suffix'] ?? ''),
+                'nickname' => sanitize_text_field($names['nickname'] ?? ''),
+                'title' => sanitize_text_field($names['title'] ?? ''),
+                'name_order' => intval($names['name_order'] ?? 1),
+                'is_primary' => 1,
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql')
+            ];
+            
+            $this->db_manager->create_name($name_data);
+            
+            // Create events if provided
+            $events = $_POST['events'] ?? [];
+            foreach ($events as $event_type => $event_data) {
+                if (!empty($event_data['event_date']) || !empty($event_data['place'])) {
+                    $event_record = [
+                        'individual_id' => $individual_id,
+                        'event_type' => sanitize_text_field($event_type),
+                        'event_date' => sanitize_text_field($event_data['event_date'] ?? ''),
+                        'place' => sanitize_text_field($event_data['place'] ?? ''),
+                        'created_at' => current_time('mysql'),
+                        'updated_at' => current_time('mysql')
+                    ];
+                    
+                    // Handle special cremation flag for burial events
+                    if ($event_type === 'burial' && isset($event_data['cremated'])) {
+                        $event_record['info'] = 'cremated';
+                    }
+                    
+                    $this->db_manager->create_event($event_record);
+                }
+            }
+            
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=edit&id=' . $individual_id . '&message=individual_created'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=add&error=create_failed'));
+            exit;
+        }
+    }/**
+     * Handle individual update
+     */
+    private function handle_update_individual()
+    {
+        $individual_id = intval($_POST['individual_id']);
+        
+        if (!wp_verify_nonce($_POST['_wpnonce'], 'heritagepress_save_individual')) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }        $individual = $_POST['individual'] ?? [];
+        $individual_data = [
+            'gedcom_id' => sanitize_text_field($individual['gedcom_id'] ?? ''),
+            'sex' => sanitize_text_field($individual['sex'] ?? ''),
+            'living' => isset($individual['living_flag']) ? intval($individual['living_flag']) : 0,
+            'updated_by' => get_current_user_id(),
+            'updated_at' => current_time('mysql')
+        ];
+
+        $success = $this->db_manager->update_individual($individual_id, $individual_data);
+        
+        if ($success) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=edit&id=' . $individual_id . '&message=individual_updated'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=edit&id=' . $individual_id . '&error=update_failed'));
+            exit;
+        }
+    }    /**
+     * Handle individual merge
+     */
+    private function handle_merge_individuals()
+    {
+        if (!wp_verify_nonce($_POST['heritagepress_nonce'], 'heritagepress_merge_individuals')) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }
+
+        $primary_id = intval($_POST['primary_individual']);
+        $secondary_id = intval($_POST['secondary_individual']);
+        
+        if (!$primary_id || !$secondary_id || $primary_id === $secondary_id) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=merge&error=invalid_selection'));
+            exit;
+        }
+
+        $success = $this->db_manager->merge_individuals($primary_id, $secondary_id);
+        
+        if ($success) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=merge&message=individuals_merged'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-individuals&tab=merge&error=merge_failed'));
+            exit;
+        }
+    }
+    
+    // =============================================================================
+    // TREE HANDLERS
+    // =============================================================================
+    
+    /**
+     * Handle tree creation
+     */
+    private function handle_create_tree()
+    {
+        if (!wp_verify_nonce($_POST['heritagepress_tree_nonce'], 'create_tree')) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }
+
+        $tree_data = [
+            'name' => sanitize_text_field($_POST['tree_name']),
+            'description' => sanitize_textarea_field($_POST['tree_description'] ?? ''),
+            'is_public' => isset($_POST['tree_is_public']) ? intval($_POST['tree_is_public']) : 0,
+            'default_language' => sanitize_text_field($_POST['tree_language'] ?? 'en_US'),
+            'date_format' => sanitize_text_field($_POST['tree_date_format'] ?? 'MDY'),
+            'place_format' => sanitize_text_field($_POST['tree_place_format'] ?? 'city, state, country'),
+            'created_by' => get_current_user_id(),
+            'updated_by' => get_current_user_id(),
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ];
+
+        $tree_id = $this->db_manager->create_tree($tree_data);
+          if ($tree_id) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&tab=manage&message=tree_created'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&tab=add&error=create_failed'));
+            exit;
+        }
+    }
+
+    /**
+     * Handle tree update
+     */
+    private function handle_update_tree()
+    {
+        $tree_id = intval($_POST['tree_id']);
+        
+        if (!wp_verify_nonce($_POST['heritagepress_tree_nonce'], 'update_tree_' . $tree_id)) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }
+
+        $tree_data = [
+            'name' => sanitize_text_field($_POST['tree_name']),
+            'description' => sanitize_textarea_field($_POST['tree_description'] ?? ''),
+            'is_public' => isset($_POST['tree_is_public']) ? intval($_POST['tree_is_public']) : 0,
+            'updated_by' => get_current_user_id(),
+            'updated_at' => current_time('mysql')
+        ];
+
+        $success = $this->db_manager->update_tree($tree_id, $tree_data);
+        
+        if ($success) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&tab=manage&message=tree_updated'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&tab=manage&action=edit&id=' . $tree_id . '&error=update_failed'));
+            exit;
+        }
+    }
+
+    /**
+     * Handle tree deletion
+     */
+    private function handle_delete_tree($tree_id)
+    {
+        if (!wp_verify_nonce($_GET['_wpnonce'], 'delete_tree_' . $tree_id)) {
+            wp_die(__('Security check failed.', 'heritagepress'));
+        }
+
+        $success = $this->db_manager->delete_tree($tree_id);
+        
+        if ($success) {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&message=tree_deleted'));
+            exit;
+        } else {
+            wp_redirect(admin_url('admin.php?page=heritagepress-trees&error=delete_failed'));
+            exit;
+        }
+    }
+
+    // =============================================================================
+    // AJAX HANDLERS
+    // =============================================================================
+
+    /**
+     * AJAX handler for tree search
+     */
+    public function ajax_search_trees()
+    {
+        check_ajax_referer('heritagepress_ajax_nonce', 'nonce');
+
+        parse_str($_POST['search_data'], $search_data);
+        
+        $search_query = sanitize_text_field($search_data['s'] ?? '');
+        $search_privacy = sanitize_text_field($search_data['privacy'] ?? '');
+        $orderby = sanitize_text_field($search_data['orderby'] ?? 'name');
+        $order = sanitize_text_field($search_data['order'] ?? 'ASC');
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'heritagepress_trees';
+
+        $where_clauses = array('1=1');
+        $query_args = array();
+
+        if (!empty($search_query)) {
+            $where_clauses[] = '(name LIKE %s OR description LIKE %s)';
+            $query_args[] = '%' . $wpdb->esc_like($search_query) . '%';
+            $query_args[] = '%' . $wpdb->esc_like($search_query) . '%';
+        }
+
+        if (!empty($search_privacy)) {
+            if ($search_privacy === 'public') {
+                $where_clauses[] = 'is_public = 1';
+            } elseif ($search_privacy === 'private') {
+                $where_clauses[] = 'is_public = 0';
+            }
+        }
+
+        $where_clause = implode(' AND ', $where_clauses);
+        $order_clause = sprintf('ORDER BY %s %s', $orderby, $order);
+
+        $query = "SELECT * FROM {$table_name} WHERE {$where_clause} {$order_clause}";
+        
+        if (!empty($query_args)) {
+            $trees = $wpdb->get_results($wpdb->prepare($query, $query_args));
+        } else {
+            $trees = $wpdb->get_results($query);
+        }
+
+        $tree_count = count($trees);
+
+        // Generate HTML for tree cards
+        ob_start();
+        if (!empty($trees)) {
+            foreach ($trees as $tree) {
+                $individual_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->prefix}heritagepress_individuals WHERE tree_id = %d",
+                    $tree->id
+                ));
+                $family_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->prefix}heritagepress_families WHERE tree_id = %d",
+                    $tree->id
+                ));
+                ?>
+                <div class="heritagepress-tree-card">
+                    <div class="tree-card-header">
+                        <h4>
+                            <a href="<?php echo admin_url('admin.php?page=heritagepress-individuals&tree_id=' . $tree->id); ?>">
+                                <?php echo esc_html($tree->name); ?>
+                            </a>
+                        </h4>
+                        <div class="tree-privacy-indicator">
+                            <?php if ($tree->is_public): ?>
+                                <span class="dashicons dashicons-visibility" title="<?php _e('Public', 'heritagepress'); ?>"></span>
+                            <?php else: ?>
+                                <span class="dashicons dashicons-hidden" title="<?php _e('Private', 'heritagepress'); ?>"></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <div class="tree-card-content">
+                        <p class="tree-description">
+                            <?php echo esc_html($tree->description ? $tree->description : __('No description available.', 'heritagepress')); ?>
+                        </p>
+                        
+                        <div class="tree-stats">
+                            <div class="stat-item">
+                                <span class="stat-number"><?php echo number_format_i18n($individual_count); ?></span>
+                                <span class="stat-label"><?php _e('Individuals', 'heritagepress'); ?></span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number"><?php echo number_format_i18n($family_count); ?></span>
+                                <span class="stat-label"><?php _e('Families', 'heritagepress'); ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="tree-meta">
+                            <span class="tree-created">
+                                <?php printf(__('Created: %s', 'heritagepress'), date_i18n(get_option('date_format'), strtotime($tree->created_at))); ?>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="tree-card-actions">
+                        <a href="<?php echo admin_url('admin.php?page=heritagepress-individuals&tree_id=' . $tree->id); ?>" 
+                           class="button button-primary">
+                            <span class="dashicons dashicons-groups"></span>
+                            <?php _e('View Tree', 'heritagepress'); ?>
+                        </a>
+                        <a href="<?php echo admin_url('admin.php?page=heritagepress-trees&tab=manage&action=edit&id=' . $tree->id); ?>" 
+                           class="button">
+                            <span class="dashicons dashicons-edit"></span>
+                            <?php _e('Edit', 'heritagepress'); ?>
+                        </a>
+                    </div>
+                </div>
+                <?php
+            }
+        }
+        $html = ob_get_clean();
+
+        // Generate summary
+        $summary = '';
+        if (!empty($search_query) || !empty($search_privacy)) {
+            $summary = sprintf(_n('Found %d tree matching your search.', 'Found %d trees matching your search.', $tree_count, 'heritagepress'), $tree_count);
+        } else {
+            $summary = sprintf(_n('Showing %d tree.', 'Showing %d trees.', $tree_count, 'heritagepress'), $tree_count);
+        }
+
+        wp_send_json_success([
+            'html' => $html,
+            'summary' => $summary,
+            'count' => $tree_count
+        ]);
+    }    /**
+     * AJAX handler for deleting individual
+     */
+    public function ajax_delete_individual()
+    {
+        check_ajax_referer('heritagepress_ajax_nonce', 'nonce');
+
+        $individual_id = intval($_POST['id']);
+        
+        if (!$individual_id) {
+            wp_send_json_error(__('Invalid individual ID.', 'heritagepress'));
+        }
+
+        $success = $this->db_manager->delete_individual($individual_id);
+        
+        if ($success) {
+            wp_send_json_success(__('Individual deleted successfully.', 'heritagepress'));
+        } else {
+            wp_send_json_error(__('Failed to delete individual.', 'heritagepress'));
+        }
+    }
+
+    /**
+     * AJAX handler for bulk deleting individuals
+     */
+    public function ajax_bulk_delete_individuals()
+    {
+        check_ajax_referer('heritagepress_ajax_nonce', 'nonce');
+
+        $individual_ids = array_map('intval', $_POST['ids']);
+        
+        if (empty($individual_ids)) {
+            wp_send_json_error(__('No individuals selected.', 'heritagepress'));
+        }
+
+        $deleted_count = 0;
+        foreach ($individual_ids as $id) {
+            if ($this->db_manager->delete_individual($id)) {
+                $deleted_count++;
+            }
+        }
+
+        if ($deleted_count > 0) {
+            wp_send_json_success([
+                'message' => sprintf(_n('%d individual deleted successfully.', '%d individuals deleted successfully.', $deleted_count, 'heritagepress'), $deleted_count)
+            ]);
+        } else {
+            wp_send_json_error(__('Failed to delete individuals.', 'heritagepress'));
+        }
+    }
+
+    /**
+     * AJAX handler for searching individuals
+     */
+    public function ajax_search_individuals()
+    {
+        check_ajax_referer('heritagepress_ajax_nonce', 'nonce');
+
+        $search_term = sanitize_text_field($_POST['search']);
+        
+        if (strlen($search_term) < 2) {
+            wp_send_json_success([]);
+        }
+
+        global $wpdb;
+        
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT i.id, i.gedcom_id, CONCAT(n.given_names, ' ', n.surname) as name 
+             FROM {$wpdb->prefix}heritagepress_individuals i 
+             LEFT JOIN {$wpdb->prefix}heritagepress_names n ON i.id = n.individual_id AND n.is_primary = 1
+             WHERE n.given_names LIKE %s OR n.surname LIKE %s OR i.gedcom_id LIKE %s
+             ORDER BY n.surname, n.given_names
+             LIMIT 10",
+            '%' . $wpdb->esc_like($search_term) . '%',
+            '%' . $wpdb->esc_like($search_term) . '%',
+            '%' . $wpdb->esc_like($search_term) . '%'        ));
+
+        wp_send_json_success($results);
+    }
+
+    /**
+     * Handle form submissions on admin_init (before output)
+     */
+    public function handle_form_submissions()
+    {
+        // Only process on our pages and with POST data
+        if (!isset($_GET['page']) || !isset($_POST['action'])) {
+            return;
+        }
+        
+        // Only handle our pages
+        $our_pages = ['heritagepress-individuals', 'heritagepress-families', 'heritagepress-sources'];
+        if (!in_array($_GET['page'], $our_pages)) {
+            return;
+        }
+        
+        // Handle individual operations
+        if ($_GET['page'] === 'heritagepress-individuals') {
+            switch ($_POST['action']) {
+                case 'create_individual':
+                    $this->handle_create_individual();
+                    break;
+                case 'update_individual':
+                    $this->handle_update_individual();
+                    break;
+                case 'merge_individuals':
+                    $this->handle_merge_individuals();
+                    break;
+            }
+        }
+    }
+}

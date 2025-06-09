@@ -1,0 +1,14 @@
+{
+    "name": "heritagepress",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "package": "pwsh ./bin/package-plugin.ps1",
+        "test": "vendor/bin/phpunit",
+        "phpcs": "vendor/bin/phpcs",
+        "phpcbf": "vendor/bin/phpcbf",
+        "check-php": "vendor/bin/phpcs --standard=WordPress includes/",
+        "fix-php": "vendor/bin/phpcbf --standard=WordPress includes/",
+        "dev:setup": "composer install && pwsh ./bin/install-wp-tests.ps1"
+    }
+}

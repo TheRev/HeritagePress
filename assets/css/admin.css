@@ -1,0 +1,36 @@
+/* Admin styles for HeritagePress */
+.heritagepress-wrap {
+    margin: 10px 20px 0 2px;
+}
+
+.heritagepress-header {
+    margin-bottom: 20px;
+}
+
+.heritagepress-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+/* Welcome panel customizations */
+.heritagepress-wrap .welcome-panel {
+    padding-bottom: 23px;
+}
+
+.heritagepress-wrap .welcome-panel-content {
+    margin-left: 13px;
+    max-width: 1500px;
+}
+
+.heritagepress-wrap .welcome-panel-column-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.heritagepress-wrap .welcome-panel-column {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+}

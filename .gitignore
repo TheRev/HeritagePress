@@ -1,0 +1,57 @@
+# Development Only - Do Not Deploy
+/vendor/
+/tests/
+/bin/
+composer.json
+composer.lock
+phpunit.xml
+.phpcs.xml
+.phpcs.xml.dist
+phpcs.xml
+phpcs.xml.dist
+.phpunit.result.cache
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Composer
+/vendor/
+composer.lock
+
+# Node
+/node_modules/
+package-lock.json
+
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/cache/
+wp-content/backups/
+
+# Plugin specific
+*.log
+*.sql
+*.sqlite
+.env
+.env.*
+!.env.example
+
+# Build files
+/build/
+/dist/
+.sass-cache/
+
+# Test coverage
+/coverage/
+.phpunit.result.cache
