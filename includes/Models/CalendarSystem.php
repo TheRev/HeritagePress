@@ -5,8 +5,7 @@ namespace HeritagePress\Models;
  * Calendar system model
  */
 class CalendarSystem extends Model
-{
-    /**
+{    /**
      * Database table name
      *
      * @var string
@@ -150,18 +149,16 @@ class CalendarSystem extends Model
             'month' => (int) $matches[2],
             'day' => (int) $matches[3]
         ];
-    }
-
-    /**
-     * Convert a date to Julian Day Number
-     *
-     * @param int    $year Year
-     * @param int    $month Month
-     * @param int    $day Day
-     * @param string $calendar Calendar code
-     * @return int|false Julian Day Number or false on failure
-     */
-    private function toJulianDayNumber($year, $month, $day, $calendar)
+    }    /**
+         * Convert a date to Julian Day Number
+         *
+         * @param int    $year Year
+         * @param int    $month Month
+         * @param int    $day Day
+         * @param string $calendar Calendar code
+         * @return int|false Julian Day Number or false on failure
+         */
+    public function toJulianDayNumber($year, $month, $day, $calendar)
     {
         switch ($calendar) {
             case 'GREGORIAN':

@@ -659,3 +659,77 @@
         width: 100%;
     }
 }
+
+/* Date Validation Styles */
+.hp-date-input {
+    position: relative;
+}
+
+.hp-date-input.hp-date-valid {
+    border-color: #46b450;
+    box-shadow: 0 0 2px rgba(70, 180, 80, 0.3);
+}
+
+.hp-date-input.hp-date-invalid {
+    border-color: #dc3232;
+    box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+}
+
+.hp-date-validation {
+    margin-top: 5px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.hp-date-validation.hp-date-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.hp-date-validation.hp-date-error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.hp-date-conversions {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.hp-date-conversions h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.hp-date-conversions p {
+    margin: 5px 0;
+}
+
+.hp-convert-date {
+    margin-left: 10px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #007cba;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.hp-convert-date:hover {
+    background: #005a87;
+}
+
+.hp-convert-date:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

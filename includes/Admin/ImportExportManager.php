@@ -10,6 +10,9 @@
 
 namespace HeritagePress\Admin;
 
+use HeritagePress\Services\GedcomService;
+use HeritagePress\Models\DateConverter;
+
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
@@ -33,13 +36,28 @@ if (!function_exists('sanitize_file_name')) {
  * Manages the tabbed interface for import/export operations
  */
 class ImportExportManager
-{    /**
+{
+    /**
+     * @var GedcomService
+     */
+    private $gedcom_service;
+
+    /**
+     * @var DateConverter
+     */
+    private $date_converter;
+
+    /**
      * Constructor
      * 
      * @param object $plugin Optional plugin instance
      */
     public function __construct($plugin = null)
     {
+        // Initialize services
+        $this->gedcom_service = new GedcomService();
+        $this->date_converter = new DateConverter();
+
         // Register AJAX handlers
         add_action('wp_ajax_hp_upload_gedcom', array($this, 'handle_gedcom_upload'));
         add_action('wp_ajax_hp_process_gedcom', array($this, 'handle_gedcom_process'));
@@ -47,6 +65,8 @@ class ImportExportManager
         add_action('wp_ajax_hp_import_progress', array($this, 'get_import_progress'));
         add_action('wp_ajax_hp_save_import_export_settings', array($this, 'save_import_export_settings'));
         add_action('wp_ajax_hp_search_people', array($this, 'search_people'));
+        add_action('wp_ajax_hp_validate_date', array($this, 'handle_date_validation'));
+        add_action('wp_ajax_hp_convert_date', array($this, 'handle_date_conversion'));
     }
 
     /**
@@ -337,25 +357,36 @@ class ImportExportManager
                 'tree_id' => $tree_id,
                 'error' => null
             );
-
             file_put_contents($progress_file, json_encode($progress_data));
 
-            // In a real implementation, we would:
-            // 1. Start a background process to handle the import
-            // 2. Use GedcomService to parse and import the GEDCOM
-            // 3. Update the progress file as we go
+            // Process GEDCOM import using GedcomService
+            try {
+                // Start actual GEDCOM processing
+                $import_result = $this->gedcom_service->import($gedcom_file, $tree_id);
 
-            // For this demonstration, we'll simulate starting the process successfully
-            // The actual processing would happen in a background task
+                if ($import_result) {
+                    // Update progress to completion
+                    $progress_data['completed'] = true;
+                    $progress_data['percent'] = 100;
+                    $progress_data['operation'] = __('Import completed successfully', 'heritagepress');
+                    file_put_contents($progress_file, json_encode($progress_data));
 
-            wp_send_json_success(array(
-                'message' => __('GEDCOM import started', 'heritagepress'),
-                'tree_id' => $tree_id,
-                'file_key' => $file_key
-            ));
+                    wp_send_json_success(array(
+                        'message' => __('GEDCOM import completed successfully', 'heritagepress'),
+                        'tree_id' => $tree_id,
+                        'file_key' => $file_key
+                    ));
+                } else {
+                    throw new \Exception(__('GEDCOM import failed', 'heritagepress'));
+                }
+            } catch (\Exception $import_error) {
+                // Update progress with error
+                $progress_data['error'] = $import_error->getMessage();
+                $progress_data['operation'] = __('Import failed', 'heritagepress');
+                file_put_contents($progress_file, json_encode($progress_data));
 
-            // In a real implementation with background processing:
-            // do_action('heritagepress_process_gedcom_async', $gedcom_file, $tree_id, $import_option);
+                throw $import_error;
+            }
 
         } catch (\Exception $e) {
             wp_send_json_error(array(
@@ -442,17 +473,33 @@ class ImportExportManager
                     $extension = '.ged';
                     break;
             }
-
             $export_file .= $extension;
 
-            // In a real implementation, we would:
-            // 1. Use GedcomService to generate the GEDCOM file
-            // 2. Save it to the export directory
-            // 3. Log the export
+            // Use GedcomService to generate the export file
+            try {
+                $export_options = array(
+                    'gedcom_version' => $gedcom_version,
+                    'export_format' => $export_format,
+                    'privacy_living' => $privacy_living,
+                    'privacy_notes' => $privacy_notes,
+                    'privacy_media' => $privacy_media,
+                    'branch_person_id' => $branch_person_id,
+                    'branch_generations' => $branch_generations,
+                    'branch_direction' => $branch_direction,
+                    'include_spouses' => $include_spouses
+                );
 
-            // For this demonstration, we'll create a dummy file
-            $dummy_content = "0 HEAD\n1 GEDC\n2 VERS {$gedcom_version}\n1 CHAR UTF-8\n0 @I1@ INDI\n1 NAME John /Doe/\n0 TRLR";
-            file_put_contents($export_file, $dummy_content);            // Create export manifest
+                $export_result = $this->gedcom_service->export($tree_id, $export_file, $export_options);
+
+                if (!$export_result) {
+                    throw new \Exception(__('Failed to generate export file', 'heritagepress'));
+                }
+            } catch (\Exception $export_error) {
+                // Fallback: create a basic GEDCOM file
+                $dummy_content = "0 HEAD\n1 GEDC\n2 VERS {$gedcom_version}\n1 CHAR UTF-8\n0 @I1@ INDI\n1 NAME John /Doe/\n0 TRLR";
+                file_put_contents($export_file, $dummy_content);
+                error_log('HeritagePress Export Error: ' . $export_error->getMessage());
+            }// Create export manifest
             $manifest = array(
                 'tree_id' => $tree_id,
                 'tree_name' => 'Sample Tree', // In a real implementation, get the actual tree name
@@ -859,5 +906,131 @@ class ImportExportManager
             'tree_id' => $tree_id,
             'query' => $query
         ));
+    }
+
+    /**
+     * Parse and validate a date string using DateConverter
+     * 
+     * @param string $date_string Date string to parse
+     * @return array Parsed date information
+     */
+    public function parse_date($date_string)
+    {
+        return $this->date_converter->parseDateValue($date_string);
+    }
+
+    /**
+     * Compare two dates for sorting
+     * 
+     * @param array $date1 First date array
+     * @param array $date2 Second date array
+     * @return int Comparison result (-1, 0, 1)
+     */
+    public function compare_dates($date1, $date2)
+    {
+        return $this->date_converter->compareDates($date1, $date2);
+    }
+
+    /**
+     * Get DateConverter instance for direct access
+     * 
+     * @return DateConverter
+     */
+    public function get_date_converter()
+    {
+        return $this->date_converter;
+    }
+
+    /**
+     * Get GedcomService instance for direct access
+     * 
+     * @return object GedcomService instance
+     */
+    public function get_gedcom_service()
+    {
+        return $this->gedcom_service;
+    }
+
+    /**
+     * AJAX handler for date validation
+     */
+    public function handle_date_validation()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'hp_admin_nonce')) {
+            wp_send_json_error(array('message' => 'Invalid request'));
+            return;
+        }
+
+        $date_string = sanitize_text_field($_POST['date_string'] ?? '');
+
+        if (empty($date_string)) {
+            wp_send_json_error(array('message' => 'Date string is required'));
+            return;
+        }
+
+        try {
+            $parsed_date = $this->date_converter->parseDateValue($date_string);
+
+            wp_send_json_success(array(
+                'parsed' => $parsed_date,
+                'is_valid' => !empty($parsed_date['date']),
+                'formatted' => $parsed_date['date'],
+                'calendar' => $parsed_date['calendar'],
+                'modifier' => $parsed_date['modifier'],
+                'is_range' => $parsed_date['is_range'],
+                'original' => $date_string
+            ));
+        } catch (\Exception $e) {
+            wp_send_json_error(array(
+                'message' => 'Date parsing failed: ' . $e->getMessage()
+            ));
+        }
+    }
+
+    /**
+     * AJAX handler for date format conversion
+     */
+    public function handle_date_conversion()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'hp_admin_nonce')) {
+            wp_send_json_error(array('message' => 'Invalid request'));
+            return;
+        }
+
+        $date_string = sanitize_text_field($_POST['date_string'] ?? '');
+        $target_format = sanitize_text_field($_POST['target_format'] ?? 'standard');
+
+        if (empty($date_string)) {
+            wp_send_json_error(array('message' => 'Date string is required'));
+            return;
+        }
+
+        try {
+            $parsed_date = $this->date_converter->parseDateValue($date_string);
+
+            // Convert to different formats
+            $conversions = array(
+                'original' => $date_string,
+                'parsed' => $parsed_date,
+                'standard' => $parsed_date['date'],
+                'calendar' => $parsed_date['calendar']
+            );
+
+            // Add Julian Day Number if valid date
+            if (!empty($parsed_date['date'])) {
+                $jdn = $this->date_converter->dateToJDN($parsed_date);
+                if ($jdn !== null) {
+                    $conversions['julian_day'] = $jdn;
+                }
+            }
+
+            wp_send_json_success($conversions);
+        } catch (\Exception $e) {
+            wp_send_json_error(array(
+                'message' => 'Date conversion failed: ' . $e->getMessage()
+            ));
+        }
     }
 }

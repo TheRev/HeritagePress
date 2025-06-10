@@ -17,6 +17,9 @@
             // Initialize the current tab functionality
             var currentTab = this.getCurrentTab();
             this.initTabFunctionality(currentTab);
+
+            // Initialize date validation
+            this.initDateValidation();
         },
 
         /**
@@ -877,6 +880,126 @@
                     $submitButton.prop('disabled', false);
                     $submitButton.val(hp_i18n.save_settings || 'Save Settings');
                     HeritagePress_ImportExport.showMessage('error', hp_i18n.ajax_error || 'An error occurred during the request. Please try again.');
+                }
+            });
+        },
+
+        /**
+         * Initialize date validation functionality
+         */
+        initDateValidation: function () {
+            // Add date validation to date input fields
+            $(document).on('blur', '.hp-date-input', this.validateDateField);
+
+            // Add date conversion button functionality
+            $(document).on('click', '.hp-convert-date', this.convertDate);
+        },
+
+        /**
+         * Validate a date field using DateConverter
+         * 
+         * @param {Event} e The blur event
+         */
+        validateDateField: function (e) {
+            var $field = $(this);
+            var dateString = $field.val().trim();
+
+            if (!dateString) {
+                $field.removeClass('hp-date-valid hp-date-invalid');
+                return;
+            }
+
+            // Remove existing validation indicators
+            $field.removeClass('hp-date-valid hp-date-invalid');
+            $field.next('.hp-date-validation').remove();
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'hp_validate_date',
+                    date_string: dateString,
+                    nonce: $('#hp_admin_nonce').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $field.addClass('hp-date-valid');
+
+                        var validationInfo = '<div class="hp-date-validation hp-date-success">';
+                        validationInfo += '<strong>Parsed:</strong> ' + (response.data.formatted || 'N/A') + '<br>';
+                        validationInfo += '<strong>Calendar:</strong> ' + response.data.calendar + '<br>';
+                        if (response.data.modifier) {
+                            validationInfo += '<strong>Modifier:</strong> ' + response.data.modifier + '<br>';
+                        }
+                        if (response.data.is_range) {
+                            validationInfo += '<strong>Range:</strong> Yes<br>';
+                        }
+                        validationInfo += '</div>';
+
+                        $field.after(validationInfo);
+                    } else {
+                        $field.addClass('hp-date-invalid');
+                        $field.after('<div class="hp-date-validation hp-date-error">Invalid date format</div>');
+                    }
+                },
+                error: function () {
+                    $field.addClass('hp-date-invalid');
+                    $field.after('<div class="hp-date-validation hp-date-error">Validation failed</div>');
+                }
+            });
+        },
+
+        /**
+         * Convert date to different formats
+         * 
+         * @param {Event} e The click event
+         */
+        convertDate: function (e) {
+            e.preventDefault();
+
+            var $button = $(this);
+            var $field = $button.prev('.hp-date-input');
+            var dateString = $field.val().trim();
+
+            if (!dateString) {
+                alert('Please enter a date first');
+                return;
+            }
+
+            $button.prop('disabled', true).text('Converting...');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'hp_convert_date',
+                    date_string: dateString,
+                    target_format: 'standard',
+                    nonce: $('#hp_admin_nonce').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        var conversions = response.data;
+                        var output = '<div class="hp-date-conversions">';
+                        output += '<h4>Date Conversions:</h4>';
+                        output += '<p><strong>Original:</strong> ' + conversions.original + '</p>';
+                        output += '<p><strong>Standard:</strong> ' + (conversions.standard || 'N/A') + '</p>';
+                        output += '<p><strong>Calendar:</strong> ' + conversions.calendar + '</p>';
+                        if (conversions.julian_day) {
+                            output += '<p><strong>Julian Day:</strong> ' + conversions.julian_day + '</p>';
+                        }
+                        output += '</div>';
+
+                        $field.after(output);
+                    } else {
+                        alert('Date conversion failed: ' + response.data.message);
+                    }
+                },
+                error: function () {
+                    alert('Date conversion request failed');
+                },
+                complete: function () {
+                    $button.prop('disabled', false).text('Convert Date');
                 }
             });
         }

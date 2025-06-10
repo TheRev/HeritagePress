@@ -144,20 +144,23 @@ class Manager
             } else {
                 error_log("HeritagePress: No CREATE TABLE statements found in $sql_file");
             }
-        }
-
-        // Initialize default calendar systems (if class exists)
-        // TEMPORARILY DISABLED TO TEST TABLE CREATION
-        /*
+        }        // Initialize default calendar systems (if class exists)
         try {
             if (class_exists('HeritagePress\Models\CalendarSystem')) {
+                error_log('HeritagePress: Initializing CalendarSystem...');
                 $calendar_system = new \HeritagePress\Models\CalendarSystem();
-                $calendar_system->initDefaults();
+                $result = $calendar_system->initDefaults();
+                if ($result) {
+                    error_log('HeritagePress: CalendarSystem initialized successfully');
+                } else {
+                    error_log('HeritagePress: CalendarSystem initialization returned false');
+                }
+            } else {
+                error_log('HeritagePress: CalendarSystem class not found');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('HeritagePress: Failed to initialize calendar systems: ' . $e->getMessage());
         }
-        */
 
         // Store the schema version
         WPHelper::updateOption('heritagepress_db_version', $this->version);
