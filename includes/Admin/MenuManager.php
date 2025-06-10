@@ -1,0 +1,81 @@
+<?php
+namespace HeritagePress\Admin;
+
+/**
+ * Handles menu registration and management for the HeritagePress plugin
+ */
+class MenuManager
+{
+    /**
+     * Add admin menu items
+     */
+    public function register_menus()
+    {
+        // Add debug logging with backtrace
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
+        $caller = '';
+        if (isset($backtrace[2]['class']) && isset($backtrace[2]['function'])) {
+            $caller = $backtrace[2]['class'] . '::' . $backtrace[2]['function'];
+        }
+        error_log('HeritagePress: MenuManager::register_menus() called from ' . $caller);
+
+        // Main menu
+        add_menu_page(
+            __('HeritagePress', 'heritagepress'),
+            __('HeritagePress', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress',
+            [$this, 'render_main_page'],
+            'dashicons-groups',
+            30
+        );
+
+        // Register submenus
+        $this->register_submenus();
+    }
+
+    /**
+     * Register all submenu pages
+     */
+    private function register_submenus()
+    {
+        $submenus = [
+            [
+                'parent' => 'heritagepress',
+                'title' => __('Individuals', 'heritagepress'),
+                'menu_title' => __('Individuals', 'heritagepress'),
+                'capability' => 'manage_heritagepress',
+                'slug' => 'heritagepress-individuals',
+                'callback' => [$this, 'render_individuals_page']
+            ],
+            // Add other submenus...
+        ];
+
+        foreach ($submenus as $submenu) {
+            add_submenu_page(
+                $submenu['parent'],
+                $submenu['title'],
+                $submenu['menu_title'],
+                $submenu['capability'],
+                $submenu['slug'],
+                $submenu['callback']
+            );
+        }
+    }
+
+    /**
+     * Render the main HeritagePress admin page
+     */
+    public function render_main_page()
+    {
+        echo '<div class="wrap"><h1>HeritagePress Main Page</h1></div>';
+    }
+
+    /**
+     * Render the individuals management page
+     */
+    public function render_individuals_page()
+    {
+        echo '<div class="wrap"><h1>HeritagePress Individuals</h1><p>Individual management interface will be available here.</p></div>';
+    }
+}

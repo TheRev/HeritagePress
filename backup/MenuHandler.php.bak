@@ -1,0 +1,163 @@
+<?php
+namespace HeritagePress\Admin;
+
+/**
+ * Handles admin menu registration and asset management
+ */
+class MenuHandler
+{
+    /** @var string Plugin root path */
+    private $plugin_path;
+
+    /** @var string Plugin URL */
+    private $plugin_url;
+
+    /** @var PageRenderer Page renderer instance */
+    private $page_renderer;
+
+    /**
+     * @param string $plugin_path Plugin root path
+     * @param string $plugin_url Plugin root URL
+     * @param PageRenderer $page_renderer Page renderer instance
+     */
+    public function __construct($plugin_path, $plugin_url, PageRenderer $page_renderer)
+    {
+        $this->plugin_path = $plugin_path;
+        $this->plugin_url = $plugin_url;
+        $this->page_renderer = $page_renderer;
+
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+
+    /**
+     * Add admin menu items
+     */
+    public function add_admin_menu()
+    {
+        // Main menu
+        add_menu_page(
+            __('HeritagePress', 'heritagepress'),
+            __('HeritagePress', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress',
+            [$this->page_renderer, 'render_main_page'],
+            'dashicons-groups',
+            30
+        );
+
+        // Dashboard submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Dashboard', 'heritagepress'),
+            __('Dashboard', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress',
+            [$this->page_renderer, 'render_main_page']
+        );
+
+        // Individuals submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Individuals', 'heritagepress'),
+            __('Individuals', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-individuals',
+            [$this->page_renderer, 'render_individuals_page']
+        );
+
+        // Families submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Families', 'heritagepress'),
+            __('Families', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-families',
+            [$this->page_renderer, 'render_families_page']
+        );
+
+        // Sources submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Sources', 'heritagepress'),
+            __('Sources', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-sources',
+            [$this->page_renderer, 'render_sources_page']
+        );
+
+        // Media Library submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Media Library', 'heritagepress'),
+            __('Media Library', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-media',
+            [$this->page_renderer, 'render_media_page']
+        );
+
+        // DNA Tests submenu
+        add_submenu_page(
+            'heritagepress',
+            __('DNA Tests', 'heritagepress'),
+            __('DNA Tests', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-dna',
+            [$this->page_renderer, 'render_dna_page']
+        );
+
+        // GEDCOM Import/Export submenu
+        add_submenu_page(
+            'heritagepress',
+            __('GEDCOM', 'heritagepress'),
+            __('GEDCOM', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-gedcom',
+            [$this->page_renderer, 'render_gedcom_page']
+        );
+
+        // Settings submenu
+        add_submenu_page(
+            'heritagepress',
+            __('Settings', 'heritagepress'),
+            __('Settings', 'heritagepress'),
+            'manage_heritagepress',
+            'heritagepress-settings',
+            [$this->page_renderer, 'render_settings_page']
+        );
+    }
+
+    /**
+     * Enqueue admin assets
+     * 
+     * @param string $hook The current admin page
+     */
+    public function enqueue_assets($hook)
+    {
+        if (strpos($hook, 'heritagepress') === false) {
+            return;
+        }
+
+        // Admin CSS
+        wp_enqueue_style(
+            'heritagepress-admin',
+            $this->plugin_url . 'assets/css/admin.css',
+            array(),
+            HERITAGEPRESS_VERSION
+        );
+
+        // Admin JavaScript
+        wp_enqueue_script(
+            'heritagepress-admin',
+            $this->plugin_url . 'assets/js/admin.js',
+            array('jquery', 'wp-util'),
+            HERITAGEPRESS_VERSION,
+            true
+        );
+
+        wp_localize_script('heritagepress-admin', 'HeritagePress', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('heritagepress_ajax_nonce')
+        ));
+    }
+}

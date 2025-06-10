@@ -12,19 +12,33 @@ namespace HeritagePress\Database;
  */
 class Manager
 {
-    /**
-     * Schema directory path
-     *
-     * @var string
-     */
+    /** @var string Schema directory path */
     private $schema_dir;
+
+    /** @var string Plugin version */
+    private $version;
+
+    /** @var string Plugin directory */
+    private $plugin_dir;
+
+    /** @var \wpdb WordPress database object */
+    private $wpdb;
 
     /**
      * Constructor
+     * 
+     * @param string $plugin_dir Optional plugin directory path
+     * @param string $version Optional plugin version
      */
-    public function __construct()
+    public function __construct($plugin_dir = null, $version = '1.0.0')
     {
-        $this->schema_dir = \HP_PLUGIN_PATH . 'includes/Database/schema/';
+        global $wpdb;
+        $this->wpdb = $wpdb;
+
+        // Ensure plugin directory path ends with a slash
+        $this->plugin_dir = rtrim($plugin_dir ?: dirname(dirname(dirname(__FILE__))), '/') . '/';
+        $this->version = $version;
+        $this->schema_dir = $this->plugin_dir . 'includes/Database/schema/';
     }
 
     /**
@@ -32,8 +46,7 @@ class Manager
      */
     public function init_tables()
     {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
+        $charset_collate = $this->wpdb->get_charset_collate();
 
         // Get the SQL files
         $sql_files = [
@@ -51,7 +64,7 @@ class Manager
             }
 
             // Replace prefix placeholder with actual prefix
-            $sql = str_replace('{$prefix}', $wpdb->prefix, $sql);
+            $sql = str_replace('{$prefix}', $this->wpdb->prefix, $sql);
 
             // Add charset and collate
             $sql = str_replace('ENGINE=InnoDB', 'ENGINE=InnoDB ' . $charset_collate, $sql);
@@ -62,10 +75,8 @@ class Manager
 
         // Initialize default calendar systems
         $calendar_system = new \HeritagePress\Models\CalendarSystem();
-        $calendar_system->initDefaults();
-
-        // Store the schema version
-        WPHelper::updateOption('heritagepress_db_version', \HP_PLUGIN_VERSION);
+        $calendar_system->initDefaults();        // Store the schema version
+        WPHelper::updateOption('heritagepress_db_version', $this->version);
     }
 
     /**
@@ -76,7 +87,7 @@ class Manager
     public function needs_update()
     {
         $current_version = WPHelper::getOption('heritagepress_db_version', '0');
-        return version_compare($current_version, \HP_PLUGIN_VERSION, '<');
+        return version_compare($current_version, $this->version, '<');
     }
 
     /**
@@ -121,5 +132,173 @@ class Manager
             'hp_dna_matches',
             'hp_dna_segments',
         ];
+    }
+
+    /**
+     * Create individual
+     * 
+     * @param array $data Individual data
+     * @return int|false ID of created individual or false on failure
+     */
+    public function create_individual($data)
+    {
+        $result = $this->wpdb->insert($this->wpdb->prefix . 'hp_individuals', $data);
+        return $result ? $this->wpdb->insert_id : false;
+    }
+
+    /**
+     * Create name
+     * 
+     * @param array $data Name data
+     * @return int|false ID of created name or false on failure
+     */
+    public function create_name($data)
+    {
+        $result = $this->wpdb->insert($this->wpdb->prefix . 'hp_names', $data);
+        return $result ? $this->wpdb->insert_id : false;
+    }
+
+    /**
+     * Update individual
+     * 
+     * @param int $id Individual ID
+     * @param array $data Individual data
+     * @return bool Success or failure
+     */
+    public function update_individual($id, $data)
+    {
+        return $this->wpdb->update(
+            $this->wpdb->prefix . 'hp_individuals',
+            $data,
+            ['id' => $id]
+        );
+    }
+
+    /**
+     * Merge individuals
+     * 
+     * @param int $source_id Source individual ID
+     * @param int $target_id Target individual ID
+     * @return bool Success or failure
+     */
+    public function merge_individuals($source_id, $target_id)
+    {
+        global $wpdb;
+
+        // Start transaction
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            // Update all relations from source to target
+            $tables = [
+                'hp_names' => 'individual_id',
+                'hp_events' => 'individual_id',
+                'hp_family_links' => 'individual_id',
+                'hp_citations' => 'individual_id'
+            ];
+
+            foreach ($tables as $table => $column) {
+                $wpdb->update(
+                    $wpdb->prefix . $table,
+                    [$column => $target_id],
+                    [$column => $source_id]
+                );
+            }
+
+            // Delete the source individual
+            $wpdb->delete(
+                $wpdb->prefix . 'hp_individuals',
+                ['id' => $source_id]
+            );
+
+            $wpdb->query('COMMIT');
+            return true;
+
+        } catch (\Exception $e) {
+            $wpdb->query('ROLLBACK');
+            return false;
+        }
+    }
+
+    /**
+     * Create tree
+     * 
+     * @param array $data Tree data
+     * @return int|false ID of created tree or false on failure
+     */
+    public function create_tree($data)
+    {
+        global $wpdb;
+        $result = $wpdb->insert($wpdb->prefix . 'hp_trees', $data);
+        return $result ? $wpdb->insert_id : false;
+    }
+
+    /**
+     * Update tree
+     * 
+     * @param int $id Tree ID
+     * @param array $data Tree data
+     * @return bool Success or failure
+     */
+    public function update_tree($id, $data)
+    {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'hp_trees',
+            $data,
+            ['id' => $id]
+        );
+    }
+
+    /**
+     * Delete tree
+     * 
+     * @param int $id Tree ID
+     * @return bool Success or failure
+     */
+    public function delete_tree($id)
+    {
+        global $wpdb;
+
+        // Start transaction
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            // Delete all related records
+            $tables = ['hp_individuals', 'hp_families', 'hp_events'];
+            foreach ($tables as $table) {
+                $wpdb->delete($wpdb->prefix . $table, ['tree_id' => $id]);
+            }
+
+            // Delete the tree
+            $wpdb->delete($wpdb->prefix . 'hp_trees', ['id' => $id]);
+
+            $wpdb->query('COMMIT');
+            return true;
+
+        } catch (\Exception $e) {
+            $wpdb->query('ROLLBACK');
+            return false;
+        }
+    }
+
+    /**
+     * Install database tables
+     */
+    public function install()
+    {
+        // Initialize tables if needed
+        if ($this->needs_update()) {
+            $this->init_tables();
+        }
+    }    /**
+         * Get the WordPress database object
+         *
+         * @return object WordPress database object
+         */
+    public function get_wpdb()
+    {
+        global $wpdb;
+        return $wpdb;
     }
 }

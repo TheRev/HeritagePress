@@ -1,0 +1,245 @@
+<?php
+namespace HeritagePress\Admin;
+
+use HeritagePress\Services\GedcomService;
+
+/**
+ * GEDCOM Import Admin Interface
+ */
+class ImportInterface
+{
+
+    /**
+     * Initialize the admin interface
+     */
+    public function init()
+    {
+        add_action('admin_menu', [$this, 'addMenuItems']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
+        add_action('wp_ajax_heritagepress_import_gedcom', [$this, 'handleImport']);
+        add_action('wp_ajax_heritagepress_validate_gedcom', [$this, 'validateFile']);
+    }
+
+    /**
+     * Add admin menu items
+     */
+    public function addMenuItems()
+    {
+        add_submenu_page(
+            'heritagepress',
+            'Import GEDCOM Data',
+            'Import Data',
+            'manage_options',
+            'heritagepress-import',
+            [$this, 'renderImportPage']
+        );
+    }
+
+    /**
+     * Enqueue required assets
+     */
+    public function enqueueAssets($hook)
+    {
+        if ($hook !== 'heritagepress_page_heritagepress-import') {
+            return;
+        }
+
+        wp_enqueue_style(
+            'heritagepress-admin',
+            plugin_dir_url(__FILE__) . '../../assets/css/admin.css',
+            [],
+            HERITAGEPRESS_VERSION
+        );
+
+        wp_enqueue_script(
+            'heritagepress-import',
+            plugin_dir_url(__FILE__) . '../../assets/js/import.js',
+            ['jquery'],
+            HERITAGEPRESS_VERSION,
+            true
+        );
+
+        wp_localize_script('heritagepress-import', 'HeritagePress', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('heritagepress-import'),
+            'maxUploadSize' => wp_max_upload_size(),
+            'strings' => [
+                'validating' => __('Validating GEDCOM file...', 'heritagepress'),
+                'importing' => __('Importing data...', 'heritagepress'),
+                'success' => __('Import completed successfully!', 'heritagepress'),
+                'error' => __('Error during import:', 'heritagepress')
+            ]
+        ]);
+    }
+
+    /**
+     * Render the import admin page
+     */
+    public function renderImportPage()
+    {
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Import Genealogy Data', 'heritagepress'); ?></h1>
+
+            <div class="hp-import-container">
+                <div class="hp-import-stage hp-import-stage-upload">
+                    <h2><?php _e('Step 1: Upload File', 'heritagepress'); ?></h2>
+                    <form id="hp-import-form" method="post" enctype="multipart/form-data">
+                        <?php wp_nonce_field('heritagepress-import'); ?>
+
+                        <div class="hp-drag-drop-zone">
+                            <p><?php _e('Drag and drop a GEDCOM file here, or click to select', 'heritagepress'); ?></p>
+                            <input type="file" name="gedcom_file" id="hp-file-input" accept=".ged,.gdz" />
+                        </div>
+
+                        <p class="description">
+                            <?php printf(
+                                __('Maximum file size: %s. Supported formats: GEDCOM (.ged) and GEDZIP (.gdz)', 'heritagepress'),
+                                size_format(wp_max_upload_size())
+                            ); ?>
+                        </p>
+                    </form>
+                </div>
+
+                <div class="hp-import-stage hp-import-stage-validate hidden">
+                    <h2><?php _e('Step 2: Validate Data', 'heritagepress'); ?></h2>
+                    <div class="hp-validation-results"></div>
+                    <div class="hp-data-preview"></div>
+                </div>
+
+                <div class="hp-import-stage hp-import-stage-import hidden">
+                    <h2><?php _e('Step 3: Import Data', 'heritagepress'); ?></h2>
+                    <div class="hp-import-options">
+                        <label>
+                            <input type="checkbox" name="overwrite_existing" value="1" />
+                            <?php _e('Overwrite existing records', 'heritagepress'); ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_media" value="1" />
+                            <?php _e('Skip media files (images, documents)', 'heritagepress'); ?>
+                        </label>
+                    </div>
+
+                    <div class="hp-import-progress">
+                        <div class="hp-progress-bar">
+                            <div class="hp-progress-value"></div>
+                        </div>
+                        <p class="hp-progress-status"></p>
+                    </div>
+
+                    <div class="hp-import-log hidden">
+                        <h3><?php _e('Import Log', 'heritagepress'); ?></h3>
+                        <pre class="hp-log-content"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Handle GEDCOM validation
+     */
+    public function validateFile()
+    {
+        check_ajax_referer('heritagepress-import');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+
+        try {
+            // Validate file upload
+            if (!isset($_FILES['gedcom_file'])) {
+                throw new \Exception('No file uploaded');
+            }
+
+            $file = $_FILES['gedcom_file'];
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                throw new \Exception('File upload failed');
+            }
+
+            // Initialize GEDCOM service
+            $gedcom = new GedcomService();
+
+            // Perform validation
+            $stats = $gedcom->validate($file['tmp_name']);
+
+            wp_send_json_success([
+                'stats' => $stats,
+                'previewData' => $this->generatePreview($file['tmp_name'])
+            ]);
+
+        } catch (\Exception $e) {
+            wp_send_json_error($e->getMessage());
+        }
+    }
+
+    /**
+     * Generate preview data from GEDCOM file
+     */
+    private function generatePreview($filepath)
+    {
+        // TODO: Implement preview generation
+        return [];
+    }
+
+    /**
+     * Handle GEDCOM import
+     */
+    public function handleImport()
+    {
+        check_ajax_referer('heritagepress-import');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+
+        try {
+            // Process uploaded file
+            if (!isset($_FILES['gedcom_file'])) {
+                throw new \Exception('No file uploaded');
+            }
+
+            $file = $_FILES['gedcom_file'];
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                throw new \Exception('File upload failed');
+            }
+
+            // Get import options
+            $options = [
+                'overwrite_existing' => !empty($_POST['overwrite_existing']),
+                'skip_media' => !empty($_POST['skip_media'])
+            ];
+
+            // Initialize services
+            $gedcom = new GedcomService();
+
+            // Create new tree
+            $tree_id = wp_insert_post([
+                'post_type' => 'hp_tree',
+                'post_title' => basename($file['name'], '.ged'),
+                'post_status' => 'publish'
+            ]);
+
+            if (!$tree_id || is_wp_error($tree_id)) {
+                throw new \Exception('Failed to create tree');
+            }
+
+            // Start import process
+            $result = $gedcom->import($file['tmp_name'], $tree_id);
+
+            if (!$result) {
+                throw new \Exception('Import failed');
+            }
+
+            wp_send_json_success([
+                'message' => __('Import completed successfully', 'heritagepress'),
+                'tree_id' => $tree_id
+            ]);
+
+        } catch (\Exception $e) {
+            wp_send_json_error($e->getMessage());
+        }
+    }
+}
