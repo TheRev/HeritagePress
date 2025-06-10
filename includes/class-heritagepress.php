@@ -93,16 +93,17 @@ class HeritagePress
 
         // Register autoloader
         HeritagePress_Autoloader::register();
-    }
-
-    /**
-     * Register plugin hooks
-     */
+    }    /**
+         * Register plugin hooks
+         */
     private static function register_hooks()
     {
-        // Activation/deactivation hooks
-        WPHelper::addHook('activate_' . WPHelper::pluginBasename(HERITAGEPRESS_PLUGIN_FILE), [__CLASS__, 'activate']);
-        WPHelper::addHook('deactivate_' . WPHelper::pluginBasename(HERITAGEPRESS_PLUGIN_FILE), [__CLASS__, 'deactivate']);
+        // Activation/deactivation hooks - these need special WordPress functions
+        if (!function_exists('register_activation_hook')) {
+            require_once ABSPATH . 'wp-includes/plugin.php';
+        }
+        \register_activation_hook(HERITAGEPRESS_PLUGIN_FILE, [__CLASS__, 'activate']);
+        \register_deactivation_hook(HERITAGEPRESS_PLUGIN_FILE, [__CLASS__, 'deactivate']);
 
         // Only add the init hook if we haven't initialized components directly
         if (!self::$components_initialized) {

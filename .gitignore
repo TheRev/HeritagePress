@@ -2,6 +2,7 @@
 /vendor/
 /tests/
 /bin/
+/references/
 composer.json
 composer.lock
 phpunit.xml
@@ -51,8 +52,12 @@ wp-content/backups/
 /build/
 
 # Reference files (not for deployment)
-/reference/
-/reference/*
+references/
+references/*
+/references/
+/references/*
+references/heritagepress-old/
+references/tng-files/
 reference.tng/
 
 # Test coverage

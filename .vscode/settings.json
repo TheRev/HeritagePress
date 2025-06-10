@@ -1,4 +1,6 @@
 {
+    // This workspace is directly in the WordPress plugin directory
+    // Path: c:\MAMP\htdocs\wordpress\wp-content\plugins\heritagepress\HeritagePress
     // Editor settings
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
@@ -12,88 +14,27 @@
     "editor.renderWhitespace": "boundary",
     "editor.bracketPairColorization.enabled": true,
     "editor.guides.bracketPairs": true,
-    "editor.suggestSelection": "first", // PHP specific settings
+    "editor.suggestSelection": "first",
+    // PHP settings
     "php.suggest.basic": true,
-    "[php]": {
-        "editor.formatOnSave": true
-    },
     "php.validate.enable": true,
-    "php.validate.run": "onSave",
-    "php.executablePath": "c:\\xampp\\php\\php.exe",
-    // PHP Namespace Resolver
-    "namespaceResolver.sortAlphabetically": true,
-    "namespaceResolver.leadingSeparator": true,
-    "namespaceResolver.autoSort": true,
-    // WordPress specific settings
-    "phpcs.standard": "WordPress",
-    "phpcbf.standard": "WordPress",
-    "phpcbf.onsave": true,
+    "php.validate.executablePath": "C:\\MAMP\\bin\\php\\php8.1.0\\php.exe",
+    "php.executablePath": "C:\\MAMP\\bin\\php\\php8.1.0\\php.exe",
+    // Language specific settings
+    "[php]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "DEVSENSE.phptools-vscode"
+    },
     // File associations
     "files.associations": {
         "*.php": "php",
-        "*.json": "jsonc"
+        "*.phtml": "php",
+        "*.inc": "php"
     },
-    // File exclusions
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        "**/node_modules": true,
-        "**/tmp": true
-    },
-    // Search exclusions
+    // Search settings
     "search.exclude": {
+        "**/vendor": true,
         "**/node_modules": true,
-        "**/bower_components": true,
-        "**/*.code-search": true,
-        "**/vendor": true
-    },
-    // Path intellisense for WordPress
-    "path-intellisense.mappings": {
-        "/": "${workspaceRoot}",
-        "includes": "${workspaceRoot}/includes",
-        "tng": "c:/xampp/htdocs/tng",
-        "archived": "C:/Users/Joe/archived_HeritagePress"
-    }, // Git settings
-    "git.enableSmartCommit": true,
-    "git.confirmSync": false,
-    "git.autofetch": true,
-    // PHP Namespace Resolver settings
-    "namespaceResolver.sortAlphabetically": true,
-    "namespaceResolver.leadingSeparator": true,
-    "namespaceResolver.autoSort": true,
-    "namespaceResolver.showMessageOnStatusBar": true,
-    // Debug configurations
-    "debug.allowBreakpointsEverywhere": true,
-    "php.debug.ideKey": "VSCODE",
-    "debug.javascript.autoAttachFilter": "smart",
-    // Workbench settings
-    "workbench.colorCustomizations": {
-        "editorError.foreground": "#ff0000",
-        "editorWarning.foreground": "#ffa500",
-        "editorInfo.foreground": "#00ff00"
-    },
-    // Terminal settings
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
-    "terminal.integrated.profiles.windows": {
-        "PowerShell": {
-            "source": "PowerShell",
-            "icon": "terminal-powershell"
-        }
-    },
-    // PHP Namespace Resolver settings
-    "namespaceResolver.sortAlphabetically": true,
-    "namespaceResolver.leadingSeparator": true,
-    "namespaceResolver.autoSort": true,
-    "namespaceResolver.exclude": [
-        "**/vendor/**",
-        "**/node_modules/**"
-    ],
-    "namespaceResolver.showMessageOnStatusBar": true,
-    "namespaceResolver.includeViewPaths": [
-        "includes/**/*.php",
-        "tests/**/*.php"
-    ]
+        "**/references": true
+    }
 }

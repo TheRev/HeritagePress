@@ -23,13 +23,11 @@ class MenuManager
         if (isset($backtrace[2]['class']) && isset($backtrace[2]['function'])) {
             $caller = $backtrace[2]['class'] . '::' . $backtrace[2]['function'];
         }
-        error_log('HeritagePress: MenuManager::register_menus() called from ' . $caller);
-
-        // Main menu - Using standard WordPress functions with core capability
+        error_log('HeritagePress: MenuManager::register_menus() called from ' . $caller);        // Main menu
         add_menu_page(
             __('HeritagePress', 'heritagepress'),
             __('HeritagePress', 'heritagepress'),
-            'manage_options', // Using core WordPress capability that admins have
+            'manage_options', // Changed from 'manage_heritagepress' to use WordPress core capability
             'heritagepress',
             [$this, 'render_main_page'],
             'dashicons-groups',
@@ -45,12 +43,11 @@ class MenuManager
      */
     private function register_submenus()
     {
-        $submenus = [
-            [
+        $submenus = [            [
                 'parent' => 'heritagepress',
                 'title' => __('Individuals', 'heritagepress'),
                 'menu_title' => __('Individuals', 'heritagepress'),
-                'capability' => 'manage_options', // Using core WordPress capability
+                'capability' => 'manage_options', // Changed from 'manage_heritagepress'
                 'slug' => 'heritagepress-individuals',
                 'callback' => [$this, 'render_individuals_page']
             ],
@@ -58,7 +55,7 @@ class MenuManager
                 'parent' => 'heritagepress',
                 'title' => __('Import/Export', 'heritagepress'),
                 'menu_title' => __('Import/Export', 'heritagepress'),
-                'capability' => 'manage_options', // Using core WordPress capability
+                'capability' => 'manage_options', // Changed from 'manage_heritagepress'
                 'slug' => 'heritagepress-importexport',
                 'callback' => [$this, 'render_importexport_page']
             ],
@@ -91,11 +88,9 @@ class MenuManager
     public function render_individuals_page()
     {
         echo '<div class="wrap"><h1>HeritagePress Individuals</h1><p>Individual management interface will be available here.</p></div>';
-    }
-
-    /**
-     * Render the Import/Export page
-     */
+    }    /**
+         * Render the Import/Export page
+         */
     public function render_importexport_page()
     {
         // Directly instantiate the ImportExportManager class
