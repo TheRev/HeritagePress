@@ -86,8 +86,8 @@ class MenuManager
     {
         echo '<div class="wrap"><h1>HeritagePress Individuals</h1><p>Individual management interface will be available here.</p></div>';
     }    /**
-     * Render the Import/Export page
-     */    
+         * Render the Import/Export page
+         */
     public function render_importexport_page()
     {
         // Directly instantiate the ImportExportManager class

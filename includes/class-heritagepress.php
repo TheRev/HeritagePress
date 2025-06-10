@@ -52,31 +52,31 @@ class HeritagePress
         // Register hooks (this will now skip the init hook registration since components are already initialized)
         self::register_hooks();
     }    /**
-     * Define plugin constants
-     */    
+         * Define plugin constants
+         */
     private static function define_constants()
     {
         // Define plugin version
         if (!defined('HERITAGEPRESS_VERSION')) {
             define('HERITAGEPRESS_VERSION', self::VERSION);
         }
-        
+
         // Define plugin file path
         if (!defined('HERITAGEPRESS_PLUGIN_FILE')) {
             define('HERITAGEPRESS_PLUGIN_FILE', dirname(dirname(dirname(__FILE__))) . '/heritagepress.php');
         }
-        
+
         // These constants should be defined in the main plugin file
         // We only define them here if they haven't been defined already
         if (!defined('HERITAGEPRESS_PLUGIN_DIR')) {
             define('HERITAGEPRESS_PLUGIN_DIR', dirname(dirname(dirname(__FILE__))) . '/');
         }
-        
+
         // Use WordPress core function directly
         if (!function_exists('plugin_dir_url')) {
             require_once ABSPATH . 'wp-includes/plugin.php';
         }
-        
+
         if (!defined('HERITAGEPRESS_PLUGIN_URL')) {
             define('HERITAGEPRESS_PLUGIN_URL', plugin_dir_url(dirname(dirname(dirname(__FILE__))) . '/heritagepress.php'));
         }
