@@ -45,6 +45,17 @@ class AssetManager
             [],
             HERITAGEPRESS_VERSION
         );
+
+        // Check if we're on the import/export page
+        $screen = get_current_screen();
+        if ($screen && strpos($screen->id, 'heritagepress-importexport') !== false) {
+            wp_enqueue_style(
+                'heritagepress-import-export',
+                $this->plugin_url . 'assets/css/import-export.css',
+                [],
+                HERITAGEPRESS_VERSION
+            );
+        }
     }
 
     /**

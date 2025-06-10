@@ -1,4 +1,10 @@
 <?php
+// Prevent multiple loads of the main class file
+if (defined('HERITAGEPRESS_MAIN_CLASS_LOADED')) {
+    return;
+}
+define('HERITAGEPRESS_MAIN_CLASS_LOADED', true);
+
 /**
  * Main plugin class
  */
@@ -10,23 +16,29 @@ class HeritagePress
     /**
      * Plugin version
      */
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.0';    /**
+            * Flag to track whether plugin has been initialized
+            */
+    private static $initialized = false;
 
     /**
      * Flag to track whether components have been initialized
      */
-    private static $components_initialized = false;
-
-    /**
-     * Plugin initialization
-     */
+    private static $components_initialized = false;    /**
+             * Plugin initialization
+             */
     public static function init()
     {
-        // Add debug logging with backtrace
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $caller = isset($backtrace[1]['file']) ? $backtrace[1]['file'] : 'unknown file';
-        $line = isset($backtrace[1]['line']) ? $backtrace[1]['line'] : 'unknown';
-        error_log('HeritagePress::init() called from: ' . $caller . ' line ' . $line);
+        // Check if we've defined an initialization marker for this request
+        if (!defined('HERITAGEPRESS_INIT_KEY')) {
+            define('HERITAGEPRESS_INIT_KEY', 'hp_init_' . HERITAGEPRESS_REQUEST_ID);
+        }
+
+        // Prevent multiple initializations per request using a constant
+        if (defined('HERITAGEPRESS_INITIALIZED')) {
+            return;
+        }
+        define('HERITAGEPRESS_INITIALIZED', true);
 
         // Define plugin constants first
         self::define_constants();
@@ -39,21 +51,35 @@ class HeritagePress
 
         // Register hooks (this will now skip the init hook registration since components are already initialized)
         self::register_hooks();
-    }
-
-    /**
+    }    /**
      * Define plugin constants
-     */
+     */    
     private static function define_constants()
     {
-        define('HERITAGEPRESS_VERSION', self::VERSION);
-        define('HERITAGEPRESS_PLUGIN_FILE', dirname(dirname(__FILE__)) . '/heritagepress.php');
-        define('HERITAGEPRESS_PLUGIN_DIR', dirname(dirname(__FILE__)) . '/');
+        // Define plugin version
+        if (!defined('HERITAGEPRESS_VERSION')) {
+            define('HERITAGEPRESS_VERSION', self::VERSION);
+        }
+        
+        // Define plugin file path
+        if (!defined('HERITAGEPRESS_PLUGIN_FILE')) {
+            define('HERITAGEPRESS_PLUGIN_FILE', dirname(dirname(dirname(__FILE__))) . '/heritagepress.php');
+        }
+        
+        // These constants should be defined in the main plugin file
+        // We only define them here if they haven't been defined already
+        if (!defined('HERITAGEPRESS_PLUGIN_DIR')) {
+            define('HERITAGEPRESS_PLUGIN_DIR', dirname(dirname(dirname(__FILE__))) . '/');
+        }
+        
         // Use WordPress core function directly
         if (!function_exists('plugin_dir_url')) {
             require_once ABSPATH . 'wp-includes/plugin.php';
         }
-        define('HERITAGEPRESS_PLUGIN_URL', plugin_dir_url(dirname(dirname(__FILE__)) . '/heritagepress.php'));
+        
+        if (!defined('HERITAGEPRESS_PLUGIN_URL')) {
+            define('HERITAGEPRESS_PLUGIN_URL', plugin_dir_url(dirname(dirname(dirname(__FILE__))) . '/heritagepress.php'));
+        }
     }
 
     /**
@@ -92,17 +118,17 @@ class HeritagePress
     {
         // Check if components have already been initialized
         if (self::$components_initialized) {
-            error_log('HeritagePress: initialize_components() called again but skipped (already initialized)');
             return;
         }
 
-        // Add debug logging
-        error_log('HeritagePress: initialize_components() called - initializing components');
-
-        // Set flag to prevent duplicate initialization
+        // Set flag to prevent duplicate initialization - do this first before any other operations
         self::$components_initialized = true;
-        if (WPHelper::isAdmin()) {
-            error_log('HeritagePress: Getting Admin instance (singleton)');
+
+        // Static variable to ensure we only get Admin instance once per request
+        static $admin_initialized = false;
+
+        if (WPHelper::isAdmin() && !$admin_initialized) {
+            $admin_initialized = true;
             $admin = HeritagePress\Admin\Admin::get_instance(HERITAGEPRESS_PLUGIN_DIR, HERITAGEPRESS_VERSION);
         }
 

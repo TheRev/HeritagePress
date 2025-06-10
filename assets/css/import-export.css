@@ -1,0 +1,661 @@
+/**
+ * Styles for the HeritagePress Import/Export interface
+ */
+
+/* Main Container */
+.heritagepress-import-export {
+    margin: 20px 0;
+}
+
+/* Tab Content */
+.hp-tab-content {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    padding: 20px;
+    margin-top: -1px;
+}
+
+/* Form Styling */
+.hp-form .form-table th {
+    width: 200px;
+}
+
+.hp-form-actions {
+    margin: 20px 0;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Progress Bar */
+.hp-progress-container {
+    margin: 15px 0;
+}
+
+.hp-progress-bar {
+    height: 20px;
+    background-color: #f1f1f1;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.hp-progress-bar-inner {
+    height: 100%;
+    background-color: #0073aa;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.hp-progress-text {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #555;
+}
+
+.hp-progress-status {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.hp-progress-right {
+    text-align: right;
+}
+
+.hp-progress-detail {
+    margin-top: 5px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Advanced Filtering */
+.hp-export-filters {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+.hp-export-filters h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.hp-export-filters details {
+    margin-bottom: 12px;
+}
+
+.hp-export-filters details summary {
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.hp-export-filters details summary:hover {
+    background: #e8e8e8;
+}
+
+.hp-filter-content {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-top: none;
+    background: white;
+}
+
+.hp-form-row {
+    margin-bottom: 15px;
+}
+
+.hp-form-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.hp-form-row select,
+.hp-form-row input[type="text"],
+.hp-form-row input[type="date"] {
+    width: 100%;
+    max-width: 350px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.hp-form-row select:focus,
+.hp-form-row input[type="text"]:focus,
+.hp-form-row input[type="date"]:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+/* Branch Selection Styles */
+.hp-branch-selection {
+    margin-top: 10px;
+}
+
+.hp-branch-person-results {
+    max-width: 350px;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    position: absolute;
+    z-index: 100;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.hp-branch-person-search-loading {
+    padding: 8px 12px;
+    color: #666;
+    font-style: italic;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-width: 350px;
+    position: absolute;
+    z-index: 100;
+}
+
+.hp-branch-person-result {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.hp-branch-person-result:hover {
+    background: #f0f7fb;
+}
+
+.hp-branch-person-error,
+.hp-branch-person-no-results {
+    padding: 8px 12px;
+    color: #666;
+    font-style: italic;
+}
+
+.hp-branch-person-error {
+    color: #a00;
+}
+
+/* Date Range Styles */
+.hp-date-range {
+    margin-top: 10px;
+}
+
+.hp-date-range-error {
+    color: #a00;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Export Progress */
+.hp-export-status {
+    margin: 20px 0;
+}
+
+.hp-export-operation {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.hp-export-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    background: #f5f5f5;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+}
+
+.hp-stat-row {
+    width: 50%;
+    margin-bottom: 10px;
+}
+
+.hp-stat-label {
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.hp-stat-value {
+    color: #0073aa;
+    font-weight: 500;
+}
+
+.hp-export-complete {
+    text-align: center;
+    margin: 25px 0;
+    padding: 20px;
+    background: #f0f7fb;
+    border: 1px solid #c5d9e8;
+    border-radius: 3px;
+}
+
+.hp-export-success {
+    font-size: 16px;
+    font-weight: 600;
+    color: #46b450;
+    margin-bottom: 15px;
+}
+
+/* Format-specific options */
+.hp-export-format-options {
+    margin-top: 15px;
+    padding: 12px;
+    background: #f8f8f8;
+    border-left: 4px solid #2271b1;
+    margin-left: 20px;
+}
+
+.hp-format-option {
+    margin-bottom: 10px;
+}
+
+.hp-format-option:last-child {
+    margin-bottom: 0;
+}
+
+.hp-format-option select {
+    margin-top: 5px;
+    max-width: 300px;
+    width: 100%;
+}
+
+/* Drag and Drop Zone */
+.hp-drag-drop-zone {
+    border: 3px dashed #b4b9be;
+    padding: 30px;
+    text-align: center;
+    background: #f9f9f9;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.hp-drag-drop-zone.drag-over {
+    background: #e6f7ff;
+    border-color: #0073aa;
+}
+
+.hp-drag-drop-zone input[type="file"] {
+    display: none;
+}
+
+.hp-drag-drop-zone .drag-instructions {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.hp-drag-drop-zone .manual-upload {
+    font-size: 14px;
+    color: #888;
+    margin: 10px 0;
+}
+
+/* Data Tables */
+.hp-data-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.hp-data-table th {
+    text-align: left;
+    width: 200px;
+}
+
+/* Validation Results */
+.hp-validation-summary {
+    margin-bottom: 20px;
+}
+
+.hp-validation-error {
+    color: #d63638;
+    font-weight: 500;
+}
+
+.hp-validation-warning {
+    color: #dba617;
+    font-weight: 500;
+}
+
+.hp-validation-success {
+    color: #00a32a;
+    font-weight: 500;
+}
+
+.hp-validation-error-row {
+    background-color: #fcf0f1;
+}
+
+.hp-validation-warning-row {
+    background-color: #fcf9e8;
+}
+
+/* Import Stats */
+.hp-import-stats {
+    margin: 20px 0;
+}
+
+/* Conditional Fields */
+.hp-conditional-field {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    display: none;
+}
+
+/* Notifications */
+.hp-notice {
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+}
+
+.hp-notice p {
+    margin: 0 0 0 10px;
+}
+
+.hp-notice-success {
+    background-color: #edfaef;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.hp-notice-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+}
+
+.hp-notice-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+/* Error and Warning Lists */
+.hp-warning-list,
+.hp-error-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hp-warning-list li,
+.hp-error-list li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.hp-warning-list li .dashicons,
+.hp-error-list li .dashicons {
+    margin-right: 8px;
+}
+
+.hp-error-list li .dashicons {
+    color: #d63638;
+}
+
+.hp-warning-list li .dashicons {
+    color: #dba617;
+}
+
+/* Logs Table */
+.hp-logs-table {
+    margin-top: 15px;
+}
+
+.hp-log-filters {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+}
+
+.hp-log-filters select,
+.hp-log-filters button {
+    margin-right: 10px;
+}
+
+.hp-log-import {
+    color: #0073aa;
+}
+
+.hp-log-export {
+    color: #008a20;
+}
+
+.hp-log-success {
+    color: #00a32a;
+    display: flex;
+    align-items: center;
+}
+
+.hp-log-error {
+    color: #d63638;
+    display: flex;
+    align-items: center;
+}
+
+.hp-log-success .dashicons,
+.hp-log-error .dashicons {
+    margin-right: 5px;
+}
+
+.hp-log-management {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e5e5;
+    text-align: right;
+}
+
+/* Settings Tab Styles */
+.hp-settings-container {
+    margin-top: 20px;
+}
+
+.hp-settings-tabs {
+    display: flex;
+    margin-bottom: -1px;
+}
+
+.hp-settings-tab {
+    background: #f1f1f1;
+    border: 1px solid #ccd0d4;
+    padding: 10px 15px;
+    margin-right: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hp-settings-tab:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.hp-settings-tab.active {
+    background: #fff;
+    border-bottom-color: #fff;
+}
+
+.hp-settings-content {
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    background: #fff;
+}
+
+.hp-settings-content h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Make sure checkboxes have proper spacing */
+.hp-settings-content input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Fieldset styling */
+.hp-settings-content fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Description text styling */
+.hp-settings-content .description {
+    font-style: italic;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Export Tab Styles */
+.hp-export-container {
+    margin-bottom: 30px;
+}
+
+.hp-export-filters {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+.hp-export-filters h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.hp-export-filters details {
+    margin-bottom: 10px;
+}
+
+.hp-export-filters summary {
+    cursor: pointer;
+    padding: 8px 0;
+    font-weight: 600;
+}
+
+.hp-export-filters summary:hover {
+    color: #0073aa;
+}
+
+.hp-filter-content {
+    margin-left: 15px;
+    padding: 10px 0;
+}
+
+/* Format specific option containers */
+.hp-export-format-options {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+.hp-export-format-options h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 10px;
+}
+
+/* Person search results */
+.hp-branch-person-results {
+    position: absolute;
+    max-width: 320px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.hp-branch-person-result {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hp-branch-person-result:hover {
+    background: #f7f7f7;
+}
+
+.hp-branch-person-search-loading {
+    padding: 8px 12px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Export Progress Display */
+.hp-export-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    gap: 15px;
+}
+
+.hp-stat-box {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    padding: 10px 15px;
+    flex-grow: 1;
+    min-width: 120px;
+    text-align: center;
+}
+
+.hp-stat-label {
+    display: block;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.hp-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0073aa;
+}
+
+.hp-export-result {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f0f9e6;
+    border: 1px solid #7ad03a;
+    border-radius: 3px;
+}
+
+.hp-export-result h4 {
+    color: #46b450;
+    margin-top: 0;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .hp-form .form-table th {
+        width: auto;
+        display: block;
+    }
+
+    .hp-log-filters select,
+    .hp-log-filters button {
+        margin-bottom: 10px;
+        display: block;
+        width: 100%;
+    }
+}

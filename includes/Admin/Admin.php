@@ -49,6 +49,9 @@ class Admin
     /** @var Admin Singleton instance */
     private static $instance = null;
 
+    /** @var boolean Flag to track if an instance was already created */
+    private static $instance_created = false;
+
     /** @var PageRenderer */
     private $page_renderer;
 
@@ -67,9 +70,25 @@ class Admin
                */
     public static function get_instance($plugin_path, $version = '1.0.0')
     {
-        if (self::$instance === null) {
-            self::$instance = new self($plugin_path, $version);
+        // Generate a unique runtime ID for this request if not already set
+        if (!defined('HERITAGEPRESS_ADMIN_INSTANCE_KEY')) {
+            define('HERITAGEPRESS_ADMIN_INSTANCE_KEY', 'hp_admin_instance_' . HERITAGEPRESS_REQUEST_ID);
         }
+
+        // If we already have an instance for this request
+        if (defined('HERITAGEPRESS_ADMIN_INSTANCE_CREATED') && self::$instance !== null) {
+            return self::$instance;
+        }
+
+        // Check if we've already created an instance in this request
+        if (defined('HERITAGEPRESS_ADMIN_INSTANCE_CREATED')) {
+            self::$instance = new self($plugin_path, $version);
+            return self::$instance;
+        }
+
+        // First time creating the instance in this request
+        define('HERITAGEPRESS_ADMIN_INSTANCE_CREATED', true);
+        self::$instance = new self($plugin_path, $version);
         return self::$instance;
     }
 
@@ -81,7 +100,6 @@ class Admin
      */
     private function __construct($plugin_path, $version = '1.0.0')
     {
-        error_log('HeritagePress: Creating new Admin instance (should only happen once)');
 
         // Calculate plugin URL
         if (!defined('HERITAGEPRESS_PLUGIN_URL')) {
@@ -119,15 +137,11 @@ class Admin
 
         // Initialize components
         $this->init();
-    }
-
-    /**
-     * Initialize admin components
-     */
+    }    /**
+         * Initialize admin components
+         */
     private function init()
     {
-        // Add debug logging
-        error_log('HeritagePress: Admin::init() called - registering menus');
 
         // Add menu items
         WPHelper::addAction('admin_menu', [$this->menu_manager, 'register_menus']);
