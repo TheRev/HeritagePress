@@ -65,10 +65,8 @@ class ImportExportManager
             'logs' => __('Import Logs', 'heritagepress')
         );
         // Start output buffer
-        ob_start();
-
-        // Include header template with tabs
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/header.php';
+        ob_start();        // Include header template with tabs
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/header.php';
 
         // Include the current tab content
         switch ($current_tab) {
@@ -90,7 +88,7 @@ class ImportExportManager
                 break;
         }
         // Include footer
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/footer.php';
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/footer.php';
 
         // Output the page content
         echo ob_get_clean();
@@ -101,17 +99,15 @@ class ImportExportManager
     private function render_import_tab()
     {
         // Get the import step, default to 1
-        $step = isset($_GET['step']) ? intval($_GET['step']) : 1;
-
-        // Use the import.php template which will include the correct step
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/import.php';
+        $step = isset($_GET['step']) ? intval($_GET['step']) : 1;        // Use the import.php template which will include the correct step
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import/import.php';
     }
     /**
      * Render the export tab
      */
     private function render_export_tab()
     {
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/export.php';
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/export/export.php';
     }
 
     /**
@@ -119,7 +115,7 @@ class ImportExportManager
      */
     private function render_settings_tab()
     {
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/settings.php';
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/settings.php';
     }
 
     /**
@@ -127,7 +123,7 @@ class ImportExportManager
      */
     private function render_logs_tab()
     {
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import_export/logs.php';
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/logs.php';
     }    /**
          * Handle GEDCOM file upload via AJAX
          */
