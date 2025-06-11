@@ -89,14 +89,10 @@ class Manager
      */
     public function init_tables()
     {
-        $charset_collate = $this->wpdb->get_charset_collate();
-
-        // Get the SQL files
+        $charset_collate = $this->wpdb->get_charset_collate();        // Get the SQL files - Use complete genealogy schema for comprehensive compatibility
         $sql_files = [
-            'core-tables.sql',
-            'documentation-tables.sql',
-            'gedcom7-tables.sql',
-            'compliance-tables.sql',
+            'complete-genealogy-schema.sql',      // Contains all 39 genealogy tables
+            'default-event-types.sql',           // Standard GEDCOM event types
         ];
         foreach ($sql_files as $sql_file) {
             error_log("HeritagePress: Processing SQL file: $sql_file");
@@ -175,49 +171,56 @@ class Manager
     {
         $current_version = WPHelper::getOption('heritagepress_db_version', '0');
         return version_compare($current_version, $this->version, '<');
-    }
-
-    /**
-     * Get list of required tables
-     *
-     * @return array List of table names without prefix
-     */
+    }    /**
+         * Get list of required tables
+         *
+         * @return array List of table names without prefix
+         */
     public function get_required_tables()
     {
         return [
-            'hp_individuals',
-            'hp_names',
-            'hp_families',
-            'hp_family_links',
-            'hp_events',
-            'hp_event_links',
-            'hp_places',
-            'hp_event_types',
+            // Core TNG Tables (22 tables)
             'hp_trees',
-            'hp_repositories',
+            'hp_people',
+            'hp_families',
+            'hp_children',
+            'hp_events',
+            'hp_eventtypes',
+            'hp_places',
             'hp_sources',
+            'hp_repositories',
             'hp_citations',
-            'hp_citation_links',
-            'hp_notes',
-            'hp_note_links',
-            'hp_media_objects',
-            'hp_media_links',
-            'hp_aliases',
-            'hp_ages',
-            'hp_relationships',
-            // New GEDCOM 7 tables
-            'hp_gedzip_archives',
-            'hp_gedzip_files',
-            'hp_calendar_systems',
-            'hp_calendar_dates',
-            'hp_extended_characters',
-            'hp_extended_character_mappings',
-            'hp_event_roles',
-            'hp_family_groups',
-            'hp_family_group_members',
+            'hp_media',
+            'hp_medialinks',
+            'hp_xnotes',
+            'hp_notelinks',
+            'hp_associations',
+            'hp_countries',
+            'hp_states',
+            'hp_mediatypes',
+            'hp_languages',
+            'hp_gedcom7_enums',
+            'hp_gedcom7_extensions',
+            'hp_gedcom7_data',
+
+            // Remaining TNG Tables (17 tables) - for 100% compatibility
+            'hp_address',
+            'hp_albums',
+            'hp_albumlinks',
+            'hp_album2entities',
+            'hp_branches',
+            'hp_branchlinks',
+            'hp_cemeteries',
+            'hp_dna_groups',
+            'hp_dna_links',
             'hp_dna_tests',
-            'hp_dna_matches',
-            'hp_dna_segments',
+            'hp_image_tags',
+            'hp_mostwanted',
+            'hp_reports',
+            'hp_saveimport',
+            'hp_temp_events',
+            'hp_templates',
+            'hp_users',
         ];
     }
 

@@ -52,21 +52,19 @@ class BaseManager
             $this->date_converter = new DateConverter();
         }
         return $this->date_converter;
-    }
-
-    /**
-     * Get GedcomService instance (lazy loading)
-     * 
-     * @return object GedcomService instance
-     */
+    }    /**
+         * Get GedcomService instance (lazy loading)
+         * 
+         * @return object GedcomServiceSimplified instance
+         */
     public function get_gedcom_service()
     {
         if ($this->gedcom_service === null) {
-            // Ensure GedcomService is loaded
-            if (!class_exists('\HeritagePress\Services\GedcomService')) {
-                require_once dirname(dirname(dirname(__FILE__))) . '/Services/GedcomService.php';
+            // Use the new simplified GEDCOM service for direct database mapping
+            if (!class_exists('\HeritagePress\Services\GedcomServiceSimplified')) {
+                require_once dirname(dirname(dirname(__FILE__))) . '/Services/GedcomServiceSimplified.php';
             }
-            $this->gedcom_service = new \HeritagePress\Services\GedcomService();
+            $this->gedcom_service = new \HeritagePress\Services\GedcomServiceSimplified();
         }
         return $this->gedcom_service;
     }
