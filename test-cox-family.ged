@@ -1,0 +1,441 @@
+﻿0 HEAD
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+3 VERS 5.5.1
+1 CHAR UTF-8
+1 SOUR FTM
+2 NAME Family Tree Maker for Windows
+2 VERS 25.0.0.1164
+2 CORP The Software MacKiev Company
+3 ADDR 30 Union Wharf
+4 CONT Boston, MA 02109
+3 PHON (617) 227-6681
+1 DEST FTM
+1 DATE 26 MAY 2025
+1 FILE Cox Family Tree_2025-05-26.ged
+1 SUBM @SUBM@
+0 @SUBM@ SUBM
+1 NAME Not Given
+0 @I544@ INDI
+1 NAME Lyle Daniel /Van Volkenburg/
+2 SOUR @S2@
+2 SOUR @S6@
+2 SOUR @S30@
+3 PAGE National Archives at St. Louis; St. Louis, Missouri; WWII Draft Registration Cards for New York State, 10/16/1940 - 03/31/1947; Record Group: Records of the Selective Service System, 147
+3 OBJE @M1543@
+2 SOUR @S15@
+3 PAGE Year: 1940; Census Place: Buffalo, Erie, New York; Roll: m-t0627-02839; Page: 1A; Enumeration District: 64-546B
+3 OBJE @M1447@
+2 SOUR @S26@
+2 SOUR Details: The Episcopal Diocese of New York; New York, New York
+3 OBJE @M2033@
+1 SEX M
+1 BIRT
+2 DATE 20 JUN 1916
+2 PLAC Niagara Falls, Niagara County, New York, USA
+3 MAP
+4 LATI N43.0945
+4 LONG W79.0567
+2 SOUR @S2@
+2 SOUR @S14@
+3 PAGE Year: 1930; Census Place: Buffalo, Erie, New York; Page: 16B; Enumeration District: 0136; FHL microfilm: 2341162
+3 OBJE @M940@
+2 SOUR @S25@
+3 PAGE New York State Archives; Albany, New York; State Population Census Schedules, 1925; Election District: 17; Assembly District: 07; City: Buffalo Ward 20; County: Erie; Page: 85
+3 OBJE @M908@
+2 SOUR @S9@
+3 PAGE Year: 1920; Census Place: Niagara Falls Ward 8, Niagara, New York; Roll: T625_1242; Page: 8B; Enumeration District: 118
+3 OBJE @M753@
+2 SOUR @S45@
+3 PAGE New York State Department of Health; Albany, NY, USA; New York State Birth Index
+3 OBJE @M1539@
+2 SOUR @S30@
+3 PAGE National Archives at St. Louis; St. Louis, Missouri; WWII Draft Registration Cards for New York State, 10/16/1940 - 03/31/1947; Record Group: Records of the Selective Service System, 147
+3 OBJE @M1543@
+2 SOUR @S225@
+3 OBJE @M1546@
+2 SOUR @S48@
+3 PAGE National Cemetery Administration; U.S. Veterans' Gravesites
+3 _LINK Http://Www.cem.va.gov/Nchp/Alexandriava.htm
+3 NOTE Http://Www.cem.va.gov/Nchp/Alexandriava.htm
+2 SOUR @S15@
+3 PAGE Year: 1940; Census Place: Buffalo, Erie, New York; Roll: m-t0627-02839; Page: 1A; Enumeration District: 64-546B
+3 OBJE @M1447@
+2 OBJE @M594@
+1 RESI
+2 DATE 1935
+2 PLAC Buffalo, Erie, New York, USA
+3 MAP
+4 LATI N42.8864
+4 LONG W78.8784
+2 SOUR @S15@
+3 PAGE Year: 1940; Census Place: Buffalo, Erie, New York; Roll: m-t0627-02839; Page: 1A; Enumeration District: 64-546B
+3 OBJE @M1447@
+1 EVEN https://ourbigclan.com/lyle-daniel-van-volkenburg/
+2 TYPE Biographical Sketch
+2 DATE 1916-1645
+1 BURI According to his daughter, Darleen Brill, the remains were never found. The funeral was mock burial held 4 years later for the benefit of the families. A plaque was placed in Arlington Cemetery with all the Aircrew names on it.
+2 DATE 4 AUG 1949
+2 PLAC Alexandria, Alexandria, Virginia, USA
+3 MAP
+4 LATI N38.8046
+4 LONG W77.0434
+2 SOUR @S2@
+2 SOUR @S224@
+3 PAGE Alexandria National Cemetery; Section: B
+3 OBJE @M1545@
+2 SOUR @S225@
+3 OBJE @M1546@
+2 SOUR @S48@
+3 PAGE National Cemetery Administration; U.S. Veterans' Gravesites
+3 _LINK Http://Www.cem.va.gov/Nchp/Alexandriava.htm
+3 NOTE Http://Www.cem.va.gov/Nchp/Alexandriava.htm
+2 SOUR @S227@
+3 PAGE Lt. VanVolkenburg buried at Arlington
+2 OBJE @M209@
+2 OBJE @M501@
+1 EDUC Lyle Van Volkenburg gets his wings.
+2 DATE 13 SEP 1944
+2 PLAC LaJunta, Colorado
+2 SOUR @S226@
+3 PAGE Lyle Van Volkenburg gets his Wings 1944-09-13
+3 _LINK https://www.newspapers.com/clip/112093894/lyle-van-volkenburg-gets-his-wings/?xid=637
+3 NOTE https://www.newspapers.com/clip/112093894/lyle-van-volkenburg-gets-his-wings/?xid=637
+2 OBJE @M634@
+1 REFN 544
+1 DEAT
+2 DATE 5 SEP 1945
+2 PLAC Alipore, Gujarat, India
+2 SOUR @S2@
+2 SOUR @S224@
+3 PAGE Alexandria National Cemetery; Section: B
+3 OBJE @M1545@
+2 SOUR @S225@
+3 OBJE @M1546@
+2 OBJE @M412@
+1 RESI Marital Status: Married; Relation to Head: Roomer
+2 DATE 1940
+2 PLAC Buffalo, Erie, New York, USA
+3 MAP
+4 LATI N42.8864
+4 LONG W78.8784
+2 SOUR @S15@
+3 PAGE Year: 1940; Census Place: Buffalo, Erie, New York; Roll: m-t0627-02839; Page: 1A; Enumeration District: 64-546B
+3 OBJE @M1447@
+1 RESI
+2 DATE 1930
+2 PLAC Buffalo, Erie, New York, USA
+3 MAP
+4 LATI N42.8864
+4 LONG W78.8784
+2 SOUR @S14@
+3 PAGE Year: 1930; Census Place: Buffalo, Erie, New York; Page: 16B; Enumeration District: 0136; FHL microfilm: 2341162
+3 OBJE @M940@
+1 RESI
+2 DATE 1920
+2 PLAC Niagara Falls, Niagara, New York, USA
+3 MAP
+4 LATI N43.0945
+4 LONG W79.0567
+2 SOUR @S9@
+3 PAGE Year: 1920; Census Place: Niagara Falls Ward 8, Niagara, New York; Roll: T625_1242; Page: 8B; Enumeration District: 118
+3 OBJE @M753@
+1 RESI
+2 DATE 1 JUN 1925
+2 PLAC Buffalo, Erie, New York, USA
+3 MAP
+4 LATI N42.8864
+4 LONG W78.8784
+2 SOUR @S25@
+3 PAGE New York State Archives; Albany, New York; State Population Census Schedules, 1925; Election District: 17; Assembly District: 07; City: Buffalo Ward 20; County: Erie; Page: 85
+3 OBJE @M908@
+1 _PHOTO @M167@
+1 OBJE @M14@
+1 OBJE @M47@
+1 OBJE @M63@
+1 OBJE @M70@
+1 OBJE @M152@
+1 OBJE @M167@
+1 OBJE @M173@
+1 OBJE @M209@
+1 OBJE @M271@
+1 OBJE @M341@
+1 OBJE @M402@
+1 OBJE @M412@
+1 OBJE @M501@
+1 OBJE @M582@
+1 OBJE @M594@
+1 OBJE @M634@
+1 OBJE @M1905@
+1 FAMS @F189@
+0 @F189@ FAM
+1 HUSB @I544@
+1 MARR
+2 DATE 21 AUG 1937
+2 PLAC Erie, New York, USA
+3 MAP
+4 LATI N42.755
+4 LONG W78.7849
+2 SOUR @S11@
+3 PAGE New York State Department of Health; Albany, NY, USA; New York State Marriage Index
+3 OBJE @M1541@
+2 SOUR @S6@
+2 SOUR @S11@
+3 OBJE @M1550@
+2 OBJE @M47@
+2 OBJE @M152@
+0 @S2@ SOUR
+1 AUTH Ancestry.com
+1 TITL U.S., Find a Grave Index, 1600s-Current
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Lehi, UT, USA; Date: 2012;
+1 REPO @R1@
+0 @S6@ SOUR
+1 AUTH Ancestry.com
+1 TITL U.S., Social Security Applications and Claims Index, 1936-2007
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2015;
+1 REPO @R1@
+1 NOTE
+2 CONC Social Security Applications and Claims, 1936-2007.
+0 @S9@ SOUR
+1 AUTH Ancestry.com
+1 TITL 1920 United States Federal Census
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2010;
+1 REPO @R1@
+1 NOTE
+2 CONC Fourteenth Census of the United States, 1920. (NARA microfilm publication T625, 2076 rolls). Records of the Bureau of the Census, Record Group 29. National Archives, Washington, D.C. For details on the contents of the film numbers, visit the follo
+2 CONC wing NARA web page: <a href="https://www.archives.gov/research/census/publications-microfilm-catalogs-census/1920/part-07.html" target="_blank">NARA</a>. Note: Enumeration Districts 819-839 are on roll 323 (Chicago City).
+0 @S11@ SOUR
+1 AUTH Ancestry.com
+1 TITL New York State, Marriage Index, 1881-1967
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Lehi, UT, USA; Date: 2017;
+1 REPO @R1@
+1 NOTE
+2 CONC New York State Marriage Index, New York State Department of Health, Albany, NY.
+0 @S14@ SOUR
+1 AUTH Ancestry.com
+1 TITL 1930 United States Federal Census
+1 PUBL Name: Ancestry.com Operations Inc; Location: Provo, UT, USA; Date: 2002;
+1 REPO @R1@
+1 NOTE
+2 CONC United States of America, Bureau of the Census. <i>Fifteenth Census of the United States, 1930</i>. Washington, D.C.: National Archives and Records Administration, 1930. T626, 2,667 rolls.
+0 @S15@ SOUR
+1 AUTH Ancestry.com
+1 TITL 1940 United States Federal Census
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2012;
+1 REPO @R1@
+1 NOTE
+2 CONC United States of America, Bureau of the Census. <i>Sixteenth Census of the United States, 1940</i>. Washington, D.C.: National Archives and Records Administration, 1940. T627, 4,643 rolls.
+0 @S25@ SOUR
+1 AUTH Ancestry.com
+1 TITL New York, U.S., State Census, 1925
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2012;
+1 REPO @R1@
+1 NOTE
+2 CONC <i>State population census schedules, 1925</i>. Albany, New York: New York State Archives.
+0 @S26@ SOUR
+1 AUTH Ancestry.com
+1 TITL New York, U.S., Newspapers.com™ Stories and Events Index, 1800's-current
+1 PUBL Name: Ancestry.com Operations Inc; Location: Lehi, UT, USA; Date: 2023;
+1 REPO @R1@
+1 NOTE
+2 CONC See newspaper information provided with each entry.
+0 @S30@ SOUR
+1 AUTH Ancestry.com
+1 TITL U.S., World War II Draft Cards Young Men, 1940-1947
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Lehi, UT, USA; Date: 2011;
+1 REPO @R1@
+1 NOTE
+2 CONC <p><a href="##SearchUrlPrefix##/search/dbextra.aspx?dbid=2238" target="_blank">View Sources</a>.</p>
+0 @S45@ SOUR
+1 AUTH Ancestry.com
+1 TITL New York State, Birth Index, 1881-1942
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Lehi, UT, USA; Date: 2018;
+1 REPO @R1@
+1 NOTE
+2 CONC New York State Birth Index, New York State Department of Health, Albany, NY.
+0 @S48@ SOUR
+1 AUTH National Cemetery Administration
+1 TITL U.S., Veterans' Gravesites, ca.1775-2019
+1 PUBL Name: Ancestry.com Operations Inc; Location: Provo, UT, USA; Date: 2006;
+1 REPO @R1@
+1 NOTE
+2 CONC National Cemetery Administration. <i>Nationwide Gravesite Locator</i>.
+0 @S224@ SOUR
+1 AUTH Ancestry.com
+1 TITL Alexandria, Virginia, U.S., Alexandria National Cemetery, 1862-2010
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2011;
+1 REPO @R1@
+0 @S225@ SOUR
+1 AUTH Ancestry.com
+1 TITL U.S., National Cemetery Interment Control Forms, 1928-1962
+1 PUBL Name: Ancestry.com Operations, Inc.; Location: Provo, UT, USA; Date: 2012;
+1 REPO @R1@
+1 NOTE
+2 CONC <p>Interment Control Forms, 1928–1962. Interment Control Forms, A1 2110-B. Records of the Office of the Quartermaster General, 1774–1985, Record Group 92. The National Archives at College Park, College Park, Maryland.</p>
+0 @S226@ SOUR
+1 TITL Newspapers.com - The Buffalo News - 1944-09-13 - Page 3
+1 PUBL Name: The Buffalo News; Location: Buffalo, New York; Date: 1944-09-13;
+1 REPO @R3@
+0 @S227@ SOUR
+1 AUTH Alden Advertiser
+1 TITL Alden Advertiser - August 18, 1949, page 1
+1 PUBL Location: Alden, New York;
+1 REPO @R4@
+0 @R1@ REPO
+1 NAME Ancestry.com
+1 ADDR
+1 EMAIL
+1 PHON
+0 @R3@ REPO
+1 NAME www.newspapers.com
+1 ADDR
+1 EMAIL
+1 PHON
+0 @R4@ REPO
+1 NAME Joseph Cox Private Collection
+1 ADDR 614 Edgewood Drive
+1 EMAIL josephlylecox@gmail.com
+1 PHON 8282637168
+0 @M14@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\LaVerna and Lyle Van Volkenburg Wedding Photo.jpg
+2 FORM jpg
+2 TITL LaVerna and Lyle Van Volkenburg Wedding Photo
+2 _DATE 20 Aug 1937
+0 @M47@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle and Laverna marriage license.jpg
+2 FORM jpg
+2 TITL Lyle and Laverna marriage license
+0 @M63@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Van Volkenburg, LaVerna Villone, Jeanette Wolf, Henry Wolf.jpg
+2 FORM jpg
+2 TITL Lyle Van Volkenburg, LaVerna Villone, Jeanette Wolf, Henry Wolf
+2 _DATE 21 Aug 1937
+2 _TEXT Lyle and  LaVerna Van Volkenburg Wedding Photo
+0 @M70@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Vanvolkenburg visits his sister in Potter County, PA.jpg
+2 FORM jpg
+2 TITL Lyle Vanvolkenburg visits his sister in Potter County, PA
+2 _DATE 16 Oct 1941
+0 @M152@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle and Laverna marriage license(1).jpg
+2 FORM jpg
+2 TITL Lyle and Laverna marriage license
+0 @M167@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Vanvolkenburg AAF Pilot 1944.jpg
+2 FORM jpg
+2 TITL Lyle Vanvolkenburg AAF Pilot 1944
+2 _DATE 1944
+0 @M173@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Van Volkenburg, LaVerna Villone, Jeanette Wolf, Henry Wolf(1).jpg
+2 FORM jpg
+2 TITL Lyle Van Volkenburg, LaVerna Villone, Jeanette Wolf, Henry Wolf
+2 _DATE 21 Aug 1937
+2 _TEXT Lyle and  LaVerna Van Volkenburg Wedding Photo
+0 @M209@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lt. VanVolkenburg Buried At Arlington.jpg
+2 FORM jpg
+2 TITL Lt. VanVolkenburg Buried At Arlington
+2 _DATE 18 Aug 1949
+0 @M271@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\LaVerna and Lyle Vanvolkenburg.jpg
+2 FORM jpg
+2 TITL LaVerna and Lyle Vanvolkenburg
+2 _DATE Aug 1937
+2 _TEXT The original is hand colored.
+0 @M341@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle and Laverna Van Volkenburg Marriage Certificate.pdf
+2 FORM jpg
+2 TITL Lyle and Laverna Van Volkenburg Marriage Certificate
+2 _DATE 20 aug 1937
+0 @M402@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Daniel Vanvolkenburg - U.S. Rosters of World War II Dead, 1939-1945.jpg
+2 FORM jpg
+2 TITL Lyle Daniel Vanvolkenburg - U.S. Rosters of World War II Dead, 1939-1945
+2 _DATE 12/2/2012 12:55:45 PM
+2 _TEXT Database online.
+0 @M412@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Daniel Vanvolkenburg - Missing Airplane and Crew.jpg
+2 FORM jpg
+2 TITL Lyle Daniel Vanvolkenburg - Missing Airplane and Crew
+2 _DATE 5 Sep 1945
+0 @M501@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle D. Van Volkenburg Arlington Cemetery Marker.jpg
+2 FORM jpg
+2 TITL Lyle D. Van Volkenburg Arlington Cemetery Marker
+2 _DATE aug 18 1949
+2 _TEXT The remains of the crew were never found. Four years after the crew's plane was lost the families were provided a funeral by the military. This marker was placed in Arlington.
+0 @M582@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Daniel Vanvolkenburg - U.S. National Cemetery Interment Control Forms, 1928-1962.jpg
+2 FORM jpg
+2 TITL Lyle Daniel Vanvolkenburg - U.S. National Cemetery Interment Control Forms, 1928-1962
+2 _DATE 12/2/2012 10:39:14 AM
+2 _TEXT Database online.
+0 @M594@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Van Volkenburg Birth Certificate.jpg
+2 FORM jpg
+2 TITL Lyle Van Volkenburg Birth Certificate
+2 _DATE 20 jun 1916
+0 @M634@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle Gets His Wings19440913.jpg
+2 FORM jpg
+2 TITL Lyle Gets His Wings19440913
+2 _DATE 13 Sep 1944
+0 @M753@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\1920 United States Federal Census(4).jpg
+2 FORM jpg
+2 TITL 1920 United States Federal Census
+2 _TEXT Year: 1920; Census Place: Niagara Falls Ward 8, Niagara, New York; Roll: T625_1242; Page: 8B; Enumeration District: 118
+0 @M908@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\New York, U.S., State Census, 1925(8).jpg
+2 FORM jpg
+2 TITL New York, U.S., State Census, 1925
+0 @M940@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\1930 United States Federal Census(15).jpg
+2 FORM jpg
+2 TITL 1930 United States Federal Census
+2 _TEXT Year: 1930; Census Place: Buffalo, Erie, New York; Page: 16B; Enumeration District: 0136; FHL microfilm: 2341162
+0 @M1447@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\1940 United States Federal Census(37).jpg
+2 FORM jpg
+2 TITL 1940 United States Federal Census
+2 _TEXT Year: 1940; Census Place: Buffalo, Erie, New York; Roll: m-t0627-02839; Page: 1A; Enumeration District: 64-546B
+0 @M1539@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\New York State, Birth Index, 1881-1942(22).jpg
+2 FORM jpg
+2 TITL New York State, Birth Index, 1881-1942
+2 _TEXT New York State Department of Health; Albany, NY, USA; New York State Birth Index
+0 @M1541@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\New York State, Marriage Index, 1881-1967(44).jpg
+2 FORM jpg
+2 TITL New York State, Marriage Index, 1881-1967
+2 _TEXT New York State Department of Health; Albany, NY, USA; New York State Marriage Index
+0 @M1543@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\U.S., World War II Draft Cards Young Men, 1940-1947(30).jpg
+2 FORM jpg
+2 TITL U.S., World War II Draft Cards Young Men, 1940-1947
+2 _TEXT National Archives at St. Louis; St. Louis, Missouri; WWII Draft Registration Cards for New York State, 10/16/1940 - 03/31/1947; Record Group: Records of the Selective Service System, 147
+0 @M1545@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Alexandria, Virginia, U.S., Alexandria National Cemetery, 1862-2010.jpg
+2 FORM jpg
+2 TITL Alexandria, Virginia, U.S., Alexandria National Cemetery, 1862-2010
+2 _TEXT Alexandria National Cemetery; Section: B
+0 @M1546@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\U.S., National Cemetery Interment Control Forms, 1928-1962.jpg
+2 FORM jpg
+2 TITL U.S., National Cemetery Interment Control Forms, 1928-1962
+0 @M1550@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\New York State, Marriage Index, 1881-1967(46).jpg
+2 FORM jpg
+2 TITL New York State, Marriage Index, 1881-1967
+0 @M1905@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\Lyle The Lip Daniel Vanvolkenburg.jpg
+2 FORM jpg
+2 TITL Lyle "The Lip" Daniel Vanvolkenburg
+2 _DATE 1944
+2 _TEXT Army Air Force
+0 @M2033@ OBJE
+1 FILE C:\Users\Joe\Documents\Family Tree Maker\Cox Family Tree Media\46919_420302988_0194-00322.jpg
+2 FORM jpg
+2 _TEXT The Episcopal Diocese of New York; New York, New York
+0 TRLR

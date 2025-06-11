@@ -9,8 +9,10 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Get file key from URL
+// Get file key from URL (optional)
 $file_key = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
+
+// Note: File key validation removed - proceeding with import regardless
 
 // Get import options from post data
 $tree_id = isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : 'new';
@@ -92,33 +94,43 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
         var importComplete = false;
         var importError = false;
         var progressInterval;
-        var startTime = new Date();
-
-        // Start the import process
+        var startTime = new Date();        // Start the import process
         function startImport() {
             if (importStarted) return;
             importStarted = true;
 
-            // Make the initial request to start import
+            // Prepare import data - file_key is optional
+            var importData = {
+                action: 'hp_process_gedcom',
+                hp_gedcom_nonce: '<?php echo wp_create_nonce('hp_gedcom_upload'); ?>',
+                tree_id: treeId,
+                new_tree_name: newTreeName,
+                import_option: importOption,
+                import_media: importMedia ? 1 : 0,
+                privacy_living: privacyLiving ? 1 : 0,
+                privacy_notes: privacyNotes ? 1 : 0
+            };
+
+            // Add file_key only if it exists
+            if (fileKey && fileKey.length > 0) {
+                importData.file_key = fileKey;
+            }            // Make the initial request to start import
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 dataType: 'json',
-                data: {
-                    action: 'hp_process_gedcom',
-                    nonce: '<?php echo wp_create_nonce('hp_gedcom_process'); ?>',
-                    file_key: fileKey,
-                    tree_id: treeId,
-                    new_tree_name: newTreeName,
-                    import_option: importOption,
-                    import_media: importMedia ? 1 : 0,
-                    privacy_living: privacyLiving ? 1 : 0,
-                    privacy_notes: privacyNotes ? 1 : 0
-                },
+                data: importData,
                 success: function (response) {
                     if (response.success) {
-                        // Start checking progress
-                        progressInterval = setInterval(checkImportProgress, 2000);
+                        // Check if import completed immediately (small files complete fast)
+                        if (response.data && response.data.completed) {
+                            // Import completed in initial request
+                            importComplete = true;
+                            redirectToResults();
+                        } else {
+                            // Import still in progress, start checking progress
+                            progressInterval = setInterval(checkImportProgress, 2000);
+                        }
                     } else {
                         handleImportError(response.data.message || 'Unknown error occurred');
                     }
@@ -127,22 +139,33 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
                     handleImportError('Failed to start the import process');
                 }
             });
-        }
-
-        // Check the import progress
+        }        // Check the import progress
         function checkImportProgress() {
+            // Prepare progress check data - file_key is optional
+            var progressData = {
+                action: 'hp_import_progress',
+                nonce: '<?php echo wp_create_nonce('hp_import_progress'); ?>'
+            };
+
+            // Add file_key only if it exists
+            if (fileKey && fileKey.length > 0) {
+                progressData.file_key = fileKey;
+            }
+
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 dataType: 'json',
-                data: {
-                    action: 'hp_import_progress',
-                    nonce: '<?php echo wp_create_nonce('hp_import_progress'); ?>',
-                    file_key: fileKey
-                },
-                success: function (response) {
+                data: progressData, success: function (response) {
                     if (response.success) {
                         updateProgress(response.data);
+
+                        // Check for errors in progress data
+                        if (response.data.error) {
+                            clearInterval(progressInterval);
+                            handleImportError(response.data.error);
+                            return;
+                        }
 
                         if (response.data.completed) {
                             clearInterval(progressInterval);
@@ -182,9 +205,7 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             var minutes = Math.floor(elapsed / 60);
             var seconds = elapsed % 60;
             $('#hp-stat-time').text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
-        }
-
-        // Handle import errors
+        }        // Handle import errors
         function handleImportError(message) {
             clearInterval(progressInterval);
             importError = true;
@@ -193,13 +214,26 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             $('#hp-current-detail').text(message);
             $('#hp-current-detail').addClass('hp-error-message');
 
-            // Add retry button
+            // Add retry button and go to results page to show error details
+            var resultsUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4&error=1')); ?>';
+            if (fileKey && fileKey.length > 0) {
+                resultsUrl += '&file=' + encodeURIComponent(fileKey);
+            }
+
+            var backUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=2')); ?>';
+            if (fileKey && fileKey.length > 0) {
+                backUrl += '&file=' + encodeURIComponent(fileKey);
+            }
+
             $('.hp-import-progress').append(
                 '<div class="hp-form-actions">' +
                 '<button type="button" class="button" id="hp-retry-import">' +
                 '<?php esc_html_e('Retry', 'heritagepress'); ?>' +
                 '</button> ' +
-                '<a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=2&file=' . $file_key)); ?>" class="button">' +
+                '<a href="' + resultsUrl + '" class="button button-primary">' +
+                '<?php esc_html_e('View Error Details', 'heritagepress'); ?>' +
+                '</a> ' +
+                '<a href="' + backUrl + '" class="button">' +
                 '<?php esc_html_e('Back to Validation', 'heritagepress'); ?>' +
                 '</a>' +
                 '</div>'
@@ -209,11 +243,13 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             $('#hp-retry-import').on('click', function () {
                 location.reload();
             });
-        }
-
-        // Redirect to the results page
+        }// Redirect to the results page
         function redirectToResults() {
-            window.location.href = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4&file=' . $file_key)); ?>';
+            var redirectUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4')); ?>';
+            if (fileKey && fileKey.length > 0) {
+                redirectUrl += '&file=' + encodeURIComponent(fileKey);
+            }
+            window.location.href = redirectUrl;
         }
 
         // Start import on page load

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug GEDCOM Upload JavaScript</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h1>Debug GEDCOM Upload JavaScript</h1>
+
+    <div id="debug-info">
+        <h3>JavaScript Variables Check</h3>
+        <div id="vars-check"></div>
+
+        <h3>Form Elements Check</h3>
+        <div id="form-check"></div>
+
+        <h3>Event Handlers Check</h3>
+        <div id="events-check"></div>
+    </div>
+
+    <!-- Simulate the upload form structure -->
+    <div class="hp-import-container">
+        <form method="post" enctype="multipart/form-data" id="hp-gedcom-upload-form" class="hp-form">
+            <div class="hp-drag-drop-zone" id="hp-drop-zone">
+                <p class="drag-instructions">Drag and drop a GEDCOM file here</p>
+                <p class="manual-upload">or</p>
+                <p>
+                    <input type="file" name="gedcom_file" id="hp-gedcom-file" accept=".ged,.gedcom">
+                    <label for="hp-gedcom-file" class="button">Select File</label>
+                </p>
+            </div>
+
+            <select name="tree_id" id="hp-gedcom-tree">
+                <option value="new">Create New Tree</option>
+            </select>
+
+            <div id="hp-new-tree-name" style="display:none;">
+                <input type="text" name="new_tree_name" id="new_tree_name" placeholder="My Family Tree">
+            </div>
+
+            <button type="submit" class="button button-primary" id="hp-validate-gedcom">
+                Upload and Validate
+            </button>
+
+            <div id="hp-upload-progress" style="display: none;">
+                <div class="hp-progress-bar">
+                    <div class="hp-progress-bar-inner"></div>
+                </div>
+                <div class="hp-progress-text">
+                    Uploading... <span class="hp-progress-percentage">0%</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Simulate the hp_vars that should be available
+        window.hp_vars = {
+            ajaxurl: 'admin-ajax.php',
+            hp_admin_url: 'admin.php',
+            nonce: 'test-nonce',
+            hp_i18n: {
+                file_too_large: 'File is too large. Maximum size is 50MB.',
+                invalid_file_type: 'Invalid file type. Only .ged and .gedcom files are allowed.',
+                no_file: 'Please select a GEDCOM file to upload.',
+                drag_drop_text: 'Drag and drop your GEDCOM file here, or click to select',
+                upload_failed: 'Upload failed. Please try again.',
+                tree_name_required: 'Please enter a name for the new tree.'
+            }
+        };
+
+        $(document).ready(function () {
+            // Check if hp_vars is available
+            $('#vars-check').html(
+                '<p>hp_vars defined: ' + (typeof hp_vars !== 'undefined') + '</p>' +
+                '<p>ajaxurl: ' + (hp_vars ? hp_vars.ajaxurl : 'undefined') + '</p>' +
+                '<p>nonce: ' + (hp_vars ? hp_vars.nonce : 'undefined') + '</p>'
+            );
+
+            // Check form elements
+            $('#form-check').html(
+                '<p>Upload form found: ' + ($('#hp-gedcom-upload-form').length > 0) + '</p>' +
+                '<p>File input found: ' + ($('#hp-gedcom-file').length > 0) + '</p>' +
+                '<p>Drop zone found: ' + ($('#hp-drop-zone').length > 0) + '</p>' +
+                '<p>Submit button found: ' + ($('#hp-validate-gedcom').length > 0) + '</p>'
+            );
+
+            // Test file selection handler
+            $('#hp-gedcom-file').on('change', function () {
+                var file = this.files[0];
+                if (file) {
+                    $('#events-check').html(
+                        '<p style="color: green;">✓ File selected: ' + file.name + '</p>' +
+                        '<p>File size: ' + file.size + ' bytes</p>' +
+                        '<p>File type: ' + file.type + '</p>'
+                    );
+
+                    // Update drop zone text
+                    $('#hp-drop-zone .drag-instructions').text(file.name);
+                } else {
+                    $('#events-check').html('<p style="color: red;">✗ No file selected</p>');
+                }
+            });
+
+            // Test form submission
+            $('#hp-gedcom-upload-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var fileInput = $('#hp-gedcom-file')[0];
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Please select a file first');
+                    return;
+                }
+
+                $('#events-check').append('<p style="color: blue;">Form submitted with file: ' + fileInput.files[0].name + '</p>');
+
+                // Show progress
+                $('#hp-upload-progress').show();
+
+                // Simulate AJAX call
+                setTimeout(function () {
+                    $('#events-check').append('<p style="color: green;">Simulated upload complete</p>');
+                    $('#hp-upload-progress').hide();
+                }, 2000);
+            });
+
+            $('#events-check').html('<p>Event handlers attached</p>');
+        });
+    </script>
+</body>
+
+</html>

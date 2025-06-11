@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test GEDCOM Upload</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h1>Test GEDCOM Upload</h1>
+
+    <form id="test-upload-form" enctype="multipart/form-data">
+        <p>
+            <label>Select GEDCOM file:</label><br>
+            <input type="file" name="gedcom_file" id="gedcom-file" accept=".ged,.gedcom">
+        </p>
+
+        <p>
+            <label>Tree:</label><br>
+            <select name="tree_id" id="tree-select">
+                <option value="new">Create New Tree</option>
+            </select>
+        </p>
+
+        <div id="new-tree-name-field" style="display:none;">
+            <label>New Tree Name:</label><br>
+            <input type="text" name="new_tree_name" id="new-tree-name" value="Test Tree">
+        </div>
+
+        <p>
+            <button type="submit" id="upload-btn">Upload and Test</button>
+        </p>
+    </form>
+
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; display: none;"></div>
+    <div id="debug" style="margin-top: 20px; padding: 10px; background: #f0f0f0;"></div>
+
+    <script>
+        $(document).ready(function () {
+            // Show new tree name field when "new" is selected
+            $('#tree-select').on('change', function () {
+                if ($(this).val() === 'new') {
+                    $('#new-tree-name-field').show();
+                } else {
+                    $('#new-tree-name-field').hide();
+                }
+            }).trigger('change');
+
+            // Test the upload
+            $('#test-upload-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var fileInput = $('#gedcom-file')[0];
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Please select a file first');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('action', 'hp_upload_gedcom');
+                formData.append('gedcom_file', fileInput.files[0]);
+                formData.append('tree_id', $('#tree-select').val());
+                formData.append('new_tree_name', $('#new-tree-name').val());
+                formData.append('import_option', 'replace');
+
+                // Note: In a real WordPress environment, we would also include the nonce
+                // formData.append('hp_gedcom_nonce', wp_nonce_value);
+
+                $('#debug').html('Testing upload to: /wp-admin/admin-ajax.php<br>Action: hp_upload_gedcom<br>File: ' + fileInput.files[0].name);
+
+                $.ajax({
+                    url: '/wp-admin/admin-ajax.php',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#result').show().html('<h3>Response:</h3><pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                    },
+                    error: function (xhr, status, error) {
+                        $('#result').show().html('<h3>Error:</h3><p>Status: ' + status + '</p><p>Error: ' + error + '</p><h4>Response:</h4><pre>' + xhr.responseText + '</pre>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

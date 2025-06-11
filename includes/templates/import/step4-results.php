@@ -12,35 +12,72 @@ if (!defined('ABSPATH')) {
 // Get file key from URL
 $file_key = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
 
-// For demo purposes - this would be real data in production
-$import_results = array(
-    'tree_id' => 1,
-    'tree_name' => 'Smith Family Tree',
-    'duration' => 65, // seconds
-    'records_processed' => 462,
-    'individuals' => 250,
-    'families' => 85,
-    'sources' => 43,
-    'media' => 12,
-    'notes' => 67,
-    'repositories' => 5,
-    'errors' => array(),
-    'warnings' => array(
-        'Could not import 3 media files due to invalid paths',
-        'Found 5 individuals with incomplete birth information'
-    ),
-);
+// Check if this is an error case
+$has_error = isset($_GET['error']) && $_GET['error'] == '1';
+
+if ($has_error) {
+    // Show error state
+    $import_results = array(
+        'tree_id' => null,
+        'tree_name' => 'Import Failed',
+        'duration' => 0,
+        'records_processed' => 0,
+        'individuals' => 0,
+        'families' => 0,
+        'sources' => 0,
+        'media' => 0,
+        'notes' => 0,
+        'repositories' => 0,
+        'errors' => array(
+            'Database schema error: Missing external_id columns in wp_hp_individuals and wp_hp_families tables',
+            'Please run the database schema update to add the required external_id columns',
+            'You can fix this by running: ALTER TABLE wp_hp_individuals ADD COLUMN external_id VARCHAR(50) NULL;',
+            'And: ALTER TABLE wp_hp_families ADD COLUMN external_id VARCHAR(50) NULL;'
+        ),
+        'warnings' => array(),
+    );
+} else {
+    // For demo purposes - this would be real data in production
+    $import_results = array(
+        'tree_id' => 1,
+        'tree_name' => 'Smith Family Tree',
+        'duration' => 65, // seconds
+        'records_processed' => 462,
+        'individuals' => 250,
+        'families' => 85,
+        'sources' => 43,
+        'media' => 12,
+        'notes' => 67,
+        'repositories' => 5,
+        'errors' => array(),
+        'warnings' => array(
+            'Could not import 3 media files due to invalid paths',
+            'Found 5 individuals with incomplete birth information'
+        ),
+    );
+}
 
 ?>
 <div class="hp-import-container">
-    <h3><?php esc_html_e('Import Complete', 'heritagepress'); ?></h3>
+    <?php if ($has_error): ?>
+        <h3><?php esc_html_e('Import Failed', 'heritagepress'); ?></h3>
 
-    <div class="hp-notice hp-notice-success">
-        <p>
-            <span class="dashicons dashicons-yes-alt"></span>
-            <?php esc_html_e('The GEDCOM file was successfully imported.', 'heritagepress'); ?>
-        </p>
-    </div>
+        <div class="hp-notice hp-notice-error">
+            <p>
+                <span class="dashicons dashicons-no-alt"></span>
+                <?php esc_html_e('The GEDCOM import encountered errors and could not complete.', 'heritagepress'); ?>
+            </p>
+        </div>
+    <?php else: ?>
+        <h3><?php esc_html_e('Import Complete', 'heritagepress'); ?></h3>
+
+        <div class="hp-notice hp-notice-success">
+            <p>
+                <span class="dashicons dashicons-yes-alt"></span>
+                <?php esc_html_e('The GEDCOM file was successfully imported.', 'heritagepress'); ?>
+            </p>
+        </div>
+    <?php endif; ?>
 
     <div class="hp-import-summary">
         <h4><?php esc_html_e('Import Summary', 'heritagepress'); ?></h4>
@@ -144,21 +181,36 @@ $import_results = array(
             </ul>
         </div>
     <?php endif; ?>
-
     <div class="hp-form-actions">
-        <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import')); ?>"
-            class="button">
-            <?php esc_html_e('New Import', 'heritagepress'); ?>
-        </a>
+        <?php if ($has_error): ?>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=1')); ?>"
+                class="button">
+                <?php esc_html_e('Try Again', 'heritagepress'); ?>
+            </a>
 
-        <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-trees&tree_id=' . $import_results['tree_id'])); ?>"
-            class="button button-primary">
-            <?php esc_html_e('View Imported Tree', 'heritagepress'); ?>
-        </a>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=logs')); ?>"
+                class="button">
+                <?php esc_html_e('View Error Log', 'heritagepress'); ?>
+            </a>
 
-        <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=logs')); ?>"
-            class="button">
-            <?php esc_html_e('View Import Log', 'heritagepress'); ?>
-        </a>
+            <a href="http://localhost/wordpress/add-external-id-columns.php" class="button button-primary" target="_blank">
+                <?php esc_html_e('Fix Database Schema', 'heritagepress'); ?>
+            </a>
+        <?php else: ?>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import')); ?>"
+                class="button">
+                <?php esc_html_e('New Import', 'heritagepress'); ?>
+            </a>
+
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-trees&tree_id=' . $import_results['tree_id'])); ?>"
+                class="button button-primary">
+                <?php esc_html_e('View Imported Tree', 'heritagepress'); ?>
+            </a>
+
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=logs')); ?>"
+                class="button">
+                <?php esc_html_e('View Import Log', 'heritagepress'); ?>
+            </a>
+        <?php endif; ?>
     </div>
 </div>

@@ -31,35 +31,43 @@ class BaseManager
     /**
      * @var DateConverter
      */
-    protected $date_converter;
-
-    /**
-     * Constructor
-     */
+    protected $date_converter;    /**
+          * Constructor
+          */
     public function __construct()
     {
-        // Initialize services
-        $this->gedcom_service = new GedcomService();
-        $this->date_converter = new DateConverter();
+        // Initialize properties to null - services will be loaded lazily
+        $this->gedcom_service = null;
+        $this->date_converter = null;
     }
 
     /**
-     * Get DateConverter instance
+     * Get DateConverter instance (lazy loading)
      * 
      * @return DateConverter
      */
     public function get_date_converter()
     {
+        if ($this->date_converter === null) {
+            $this->date_converter = new DateConverter();
+        }
         return $this->date_converter;
     }
 
     /**
-     * Get GedcomService instance
+     * Get GedcomService instance (lazy loading)
      * 
      * @return object GedcomService instance
      */
     public function get_gedcom_service()
     {
+        if ($this->gedcom_service === null) {
+            // Ensure GedcomService is loaded
+            if (!class_exists('\HeritagePress\Services\GedcomService')) {
+                require_once dirname(dirname(dirname(__FILE__))) . '/Services/GedcomService.php';
+            }
+            $this->gedcom_service = new \HeritagePress\Services\GedcomService();
+        }
         return $this->gedcom_service;
     }
 
@@ -93,17 +101,20 @@ class BaseManager
             'base_dir' => $upload_dir['basedir'],
             'base_url' => $upload_dir['baseurl']
         );
-    }
-
-    /**
-     * Ensure upload directory exists
-     * 
-     * @param string $dir_path Directory path
-     * @return bool True if directory exists or was created
-     */
+    }    /**
+         * Ensure upload directory exists
+         * 
+         * @param string $dir_path Directory path
+         * @return bool True if directory exists or was created
+         */
     protected function ensure_upload_dir($dir_path)
     {
         if (!file_exists($dir_path)) {
+            // Ensure WordPress functions are available
+            if (!function_exists('wp_mkdir_p')) {
+                require_once ABSPATH . 'wp-includes/functions.php';
+            }
+
             if (!wp_mkdir_p($dir_path)) {
                 return false;
             }

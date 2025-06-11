@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HeritagePress Upload Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .debug {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #d00;
+        }
+
+        .success {
+            background: #e6ffe6;
+            color: #060;
+        }
+
+        .info {
+            background: #e6f3ff;
+            color: #006;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>HeritagePress Upload Debug</h1>
+
+    <div class="debug info">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Open browser Developer Tools (F12)</li>
+            <li>Go to Console tab</li>
+            <li>Try to upload a file and watch for console messages</li>
+            <li>Check Network tab to see the actual AJAX request</li>
+        </ol>
+    </div>
+
+    <div class="debug">
+        <h3>Direct AJAX Test:</h3>
+        <button onclick="testAjaxEndpoint()">Test AJAX Endpoint</button>
+        <div id="ajax-result"></div>
+    </div>
+
+    <div class="debug">
+        <h3>File Upload Test:</h3>
+        <form id="test-form" enctype="multipart/form-data">
+            <p>
+                <input type="file" id="test-file" accept=".ged,.gedcom">
+                <button type="button" onclick="testFileUpload()">Test Upload</button>
+            </p>
+        </form>
+        <div id="upload-result"></div>
+    </div>
+
+    <div class="debug">
+        <h3>Debug Info:</h3>
+        <div id="debug-info">
+            <p><strong>WordPress Admin AJAX URL:</strong> /wp-admin/admin-ajax.php</p>
+            <p><strong>Expected Action:</strong> hp_upload_gedcom</p>
+            <p><strong>Expected Nonce Action:</strong> hp_gedcom_upload</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function testAjaxEndpoint() {
+            console.log('Testing AJAX endpoint...');
+
+            $.ajax({
+                url: '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: {
+                    action: 'hp_upload_gedcom'
+                },
+                success: function (response) {
+                    console.log('AJAX Test Response:', response);
+                    $('#ajax-result').html('<div class="success">Response: ' + JSON.stringify(response) + '</div>');
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Test Error:', { xhr, status, error });
+                    $('#ajax-result').html('<div class="error">Error: ' + status + ' - ' + error + '<br>Response: ' + xhr.responseText + '</div>');
+                }
+            });
+        }
+
+        function testFileUpload() {
+            var fileInput = document.getElementById('test-file');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file first');
+                return;
+            }
+
+            console.log('Testing file upload...');
+            console.log('File:', fileInput.files[0]);
+
+            var formData = new FormData();
+            formData.append('action', 'hp_upload_gedcom');
+            formData.append('gedcom_file', fileInput.files[0]);
+            // Note: No nonce for this test
+
+            console.log('FormData contents:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name + ' (' + pair[1].size + ' bytes)' : pair[1]));
+            }
+
+            $.ajax({
+                url: '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log('Upload Test Response:', response);
+                    $('#upload-result').html('<div class="success">Response: ' + JSON.stringify(response) + '</div>');
+                },
+                error: function (xhr, status, error) {
+                    console.error('Upload Test Error:', { xhr, status, error });
+                    $('#upload-result').html('<div class="error">Error: ' + status + ' - ' + error + '<br>Response: ' + xhr.responseText + '</div>');
+                }
+            });
+        }
+
+        // Check if we're in WordPress context
+        $(document).ready(function () {
+            if (window.location.href.indexOf('wp-admin') > -1) {
+                $('#debug-info').append('<div class="success">✓ Running in WordPress admin context</div>');
+            } else {
+                $('#debug-info').append('<div class="error">✗ Not in WordPress admin context</div>');
+            }
+        });
+    </script>
+</body>
+
+</html>

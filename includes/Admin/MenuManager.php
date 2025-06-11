@@ -38,11 +38,9 @@ class MenuManager
 
         // Register submenus
         $this->register_submenus();
-    }
-
-    /**
-     * Register all submenu pages
-     */
+    }    /**
+         * Register all submenu pages
+         */
     private function register_submenus()
     {
         $submenus = [
@@ -61,6 +59,14 @@ class MenuManager
                 'capability' => 'manage_options', // Using core WordPress capability
                 'slug' => 'heritagepress-importexport',
                 'callback' => [$this, 'render_importexport_page']
+            ],
+            [
+                'parent' => 'heritagepress',
+                'title' => __('Tools', 'heritagepress'),
+                'menu_title' => __('Tools', 'heritagepress'),
+                'capability' => 'manage_options', // Using core WordPress capability
+                'slug' => 'heritagepress-tools',
+                'callback' => [$this, 'render_tools_page']
             ],
             // Add other submenus...
         ];
@@ -91,15 +97,23 @@ class MenuManager
     public function render_individuals_page()
     {
         echo '<div class="wrap"><h1>HeritagePress Individuals</h1><p>Individual management interface will be available here.</p></div>';
+    }    /**
+         * Render the Import/Export page
+         */
+    public function render_importexport_page()
+    {
+        // Directly instantiate the ImportExportManager class with full namespace
+        $importExport = new \HeritagePress\Admin\ImportExportManager();
+        $importExport->render_page();
     }
 
     /**
-     * Render the Import/Export page
+     * Render the Tools page
      */
-    public function render_importexport_page()
+    public function render_tools_page()
     {
-        // Directly instantiate the ImportExportManager class
-        $importExport = new ImportExportManager();
-        $importExport->render_page();
+        // Directly instantiate the TableManager class with full namespace
+        $tableManager = new \HeritagePress\Admin\TableManager();
+        $tableManager->render_page();
     }
 }

@@ -131,11 +131,9 @@ class ExportHandler extends BaseManager
 
         // Determine file extension based on format
         $extension = $this->get_file_extension($format);
-        $export_file .= $extension;
-
-        // Use GedcomService to generate the export file
+        $export_file .= $extension;        // Use GedcomService to generate the export file
         try {
-            $export_result = $this->gedcom_service->export($tree_id, $export_file, $options);
+            $export_result = $this->get_gedcom_service()->export($tree_id, $export_file, $options);
 
             if (!$export_result) {
                 throw new \Exception(__('Failed to generate export file', 'heritagepress'));

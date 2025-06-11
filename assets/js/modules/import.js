@@ -68,22 +68,20 @@
                     var maxSize = 50 * 1024 * 1024; // 50MB
 
                     // Update drop zone text with filename
-                    $('#hp-drop-zone .drag-instructions').text(fileName);
-
-                    // Validate file size
+                    $('#hp-drop-zone .drag-instructions').text(fileName);                    // Validate file size
                     if (fileSize > maxSize) {
-                        alert(hp_i18n.file_too_large || 'File is too large. Maximum size is 50MB.');
+                        alert(hp_vars.hp_i18n.file_too_large || 'File is too large. Maximum size is 50MB.');
                         $(this).val('');
-                        $('#hp-drop-zone .drag-instructions').text(hp_i18n.drag_drop_text || 'Drag and drop your GEDCOM file here, or click to select');
+                        $('#hp-drop-zone .drag-instructions').text(hp_vars.hp_i18n.drag_drop_text || 'Drag and drop your GEDCOM file here, or click to select');
                         return;
                     }
 
                     // Validate file extension
                     var extension = fileName.split('.').pop().toLowerCase();
                     if (!['ged', 'gedcom'].includes(extension)) {
-                        alert(hp_i18n.invalid_file_type || 'Invalid file type. Only .ged and .gedcom files are allowed.');
+                        alert(hp_vars.hp_i18n.invalid_file_type || 'Invalid file type. Only .ged and .gedcom files are allowed.');
                         $(this).val('');
-                        $('#hp-drop-zone .drag-instructions').text(hp_i18n.drag_drop_text || 'Drag and drop your GEDCOM file here, or click to select');
+                        $('#hp-drop-zone .drag-instructions').text(hp_vars.hp_i18n.drag_drop_text || 'Drag and drop your GEDCOM file here, or click to select');
                         return;
                     }
                 }
@@ -185,11 +183,9 @@
 
             // Disable button and show progress
             $submitButton.prop('disabled', true);
-            $('#hp-upload-progress').show();
-
-            // Send AJAX request
+            $('#hp-upload-progress').show();            // Send AJAX request
             $.ajax({
-                url: ajaxurl,
+                url: hp_vars.ajaxurl,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -204,11 +200,10 @@
                         }
                     });
                     return xhr;
-                },
-                success: function (response) {
+                }, success: function (response) {
                     if (response.success) {
                         // Redirect to step 2
-                        var redirectUrl = hp_admin_url + 'admin.php?page=heritagepress-importexport&tab=import&step=2&file=' + response.data.file_key;
+                        var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-importexport&tab=import&step=2&file=' + response.data.file_key;
                         window.location.href = redirectUrl;
                     } else {
                         HeritagePress_Import.handleUploadError(response.data.message);
@@ -217,20 +212,18 @@
                     }
                 },
                 error: function () {
-                    HeritagePress_Import.handleUploadError(hp_i18n.ajax_error);
+                    HeritagePress_Import.handleUploadError(hp_vars.hp_i18n.ajax_error);
                     $submitButton.prop('disabled', false);
                     $('#hp-upload-progress').hide();
                 }
             });
-        },
-
-        /**
+        },        /**
          * Validate upload form
          */
         validateUploadForm: function ($form) {
             var $fileInput = $form.find('#hp-gedcom-file');
             if ($fileInput[0].files.length === 0) {
-                this.showMessage('error', hp_i18n.no_file || 'Please select a GEDCOM file to upload.');
+                this.showMessage('error', hp_vars.hp_i18n.no_file || 'Please select a GEDCOM file to upload.');
                 return false;
             }
 
@@ -238,7 +231,7 @@
             if ($treeSelect.val() === 'new') {
                 var $newTreeName = $form.find('#new_tree_name');
                 if ($newTreeName.val().trim() === '') {
-                    this.showMessage('error', hp_i18n.tree_name_required || 'Please enter a name for the new tree.');
+                    this.showMessage('error', hp_vars.hp_i18n.tree_name_required || 'Please enter a name for the new tree.');
                     $newTreeName.focus();
                     return false;
                 }

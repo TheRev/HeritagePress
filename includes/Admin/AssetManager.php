@@ -56,11 +56,9 @@ class AssetManager
                 HERITAGEPRESS_VERSION
             );
         }
-    }
-
-    /**
-     * Enqueue admin scripts
-     */
+    }    /**
+         * Enqueue admin scripts
+         */
     private function enqueue_scripts()
     {
         wp_enqueue_script(
@@ -75,5 +73,35 @@ class AssetManager
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('heritagepress_ajax_nonce')
         ]);
+
+        // Check if we're on the import/export page
+        if (!function_exists('get_current_screen')) {
+            require_once ABSPATH . 'wp-admin/includes/screen.php';
+        }
+
+        $screen = get_current_screen();
+        if ($screen && strpos($screen->id, 'heritagepress-importexport') !== false) {
+            // Enqueue import/export specific scripts
+            wp_enqueue_script(
+                'heritagepress-import-export',
+                $this->plugin_url . 'assets/js/import-export.js',
+                ['jquery', 'wp-util'],
+                HERITAGEPRESS_VERSION,
+                true
+            );            // Localize variables for import/export functionality
+            wp_localize_script('heritagepress-import-export', 'hp_vars', [
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'hp_admin_url' => admin_url(),
+                'nonce' => wp_create_nonce('hp_gedcom_upload'),
+                'hp_i18n' => [
+                    'file_too_large' => __('File is too large. Maximum size is 50MB.', 'heritagepress'),
+                    'invalid_file_type' => __('Invalid file type. Only .ged and .gedcom files are allowed.', 'heritagepress'),
+                    'no_file' => __('Please select a GEDCOM file to upload.', 'heritagepress'),
+                    'drag_drop_text' => __('Drag and drop your GEDCOM file here, or click to select', 'heritagepress'),
+                    'upload_failed' => __('Upload failed. Please try again.', 'heritagepress'),
+                    'tree_name_required' => __('Please enter a name for the new tree.', 'heritagepress'),
+                ]
+            ]);
+        }
     }
 }
