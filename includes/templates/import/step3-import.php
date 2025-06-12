@@ -98,8 +98,20 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
     </div>
 </div>
 
-<script>
-    jQuery(document).ready(function ($) {
+<script>    jQuery(document).ready(function ($) {
+        console.log('=== STEP 3 TEMPLATE DEBUG ===');
+        console.log('Step 3 import template loaded');
+        
+        // Check if ajaxurl is available
+        if (typeof ajaxurl !== 'undefined') {
+            console.log('✅ ajaxurl is available:', ajaxurl);
+        } else {
+            console.log('❌ ajaxurl is NOT available - defining fallback');
+            // Define ajaxurl as fallback
+            window.ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+            console.log('Created fallback ajaxurl:', window.ajaxurl);
+        }
+        
         // Variables
         var fileKey = '<?php echo esc_js($file_key); ?>';
         var treeId = '<?php echo esc_js($tree_id); ?>';
@@ -140,12 +152,19 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
                 dataType: 'json',
                 data: importData,
                 success: function (response) {
-                    if (response.success) {
-                        // Check if import completed immediately (small files complete fast)
+                    if (response.success) {                        // Check if import completed immediately (small files complete fast)
                         if (response.data && response.data.completed) {
                             // Import completed in initial request
                             importComplete = true;
-                            redirectToResults();
+                            
+                            // Use the redirect URL provided by the server if available
+                            if (response.data.redirect_url) {
+                                console.log('STEP 3 DEBUG - Import completed immediately, using server-provided redirect URL:', response.data.redirect_url);
+                                window.location.href = response.data.redirect_url;
+                            } else {
+                                // Fallback to our custom redirect logic
+                                redirectToResults();
+                            }
                         } else {
                             // Import still in progress, start checking progress
                             progressInterval = setInterval(checkImportProgress, 2000);
@@ -184,12 +203,18 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
                             clearInterval(progressInterval);
                             handleImportError(response.data.error);
                             return;
-                        }
-
-                        if (response.data.completed) {
+                        }                        if (response.data.completed) {
                             clearInterval(progressInterval);
                             importComplete = true;
-                            redirectToResults();
+                            
+                            // Use the redirect URL provided by the server if available
+                            if (response.data.redirect_url) {
+                                console.log('STEP 3 DEBUG - Using server-provided redirect URL:', response.data.redirect_url);
+                                window.location.href = response.data.redirect_url;
+                            } else {
+                                // Fallback to our custom redirect logic
+                                redirectToResults();
+                            }
                         }
                     } else {
                         handleImportError(response.data.message || 'Error checking import progress');
@@ -232,7 +257,7 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             $('#hp-current-operation').text('<?php esc_html_e('Import Error', 'heritagepress'); ?>');
             $('#hp-current-detail').text(message);
             $('#hp-current-detail').addClass('hp-error-message');            // Add retry button and go to results page to show error details
-            var resultsUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4&error=1')); ?>';
+            var resultsUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-import-export&tab=import&step=4&error=1')); ?>';
             if (fileKey && fileKey.length > 0) {
                 resultsUrl += '&file=' + encodeURIComponent(fileKey);
             }
@@ -244,7 +269,7 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             }
             if (importOption && importOption.length > 0) {
                 resultsUrl += '&import_option=' + encodeURIComponent(importOption);
-            } var backUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=2')); ?>';
+            } var backUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-import-export&tab=import&step=2')); ?>';
             if (fileKey && fileKey.length > 0) {
                 backUrl += '&file=' + encodeURIComponent(fileKey);
             }
@@ -278,20 +303,33 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             });
         }        // Redirect to the results page
         function redirectToResults() {
-            var redirectUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4')); ?>';
-            if (fileKey && fileKey.length > 0) {
-                redirectUrl += '&file=' + encodeURIComponent(fileKey);
-            }
-            if (treeId && treeId.length > 0) {
-                redirectUrl += '&tree_id=' + encodeURIComponent(treeId);
-            }
-            if (newTreeName && newTreeName.length > 0) {
-                redirectUrl += '&new_tree_name=' + encodeURIComponent(newTreeName);
-            }
-            if (importOption && importOption.length > 0) {
-                redirectUrl += '&import_option=' + encodeURIComponent(importOption);
-            }
-            window.location.href = redirectUrl;
+            console.log('STEP 3 DEBUG - Redirecting to results page');
+            console.log('  fileKey:', fileKey);
+            console.log('  treeId:', treeId);
+            console.log('  newTreeName:', newTreeName);
+            console.log('  importOption:', importOption);
+            
+            // Create a hidden form to POST the completion data to Step 4
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '<?php echo esc_url(admin_url('admin.php?page=heritagepress-import-export&tab=import&step=4')); ?>'
+            });
+            
+            // Add all the completion data as hidden fields
+            form.append($('<input>', { 'type': 'hidden', 'name': 'file_key', 'value': fileKey }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'tree_id', 'value': treeId }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'new_tree_name', 'value': newTreeName }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'import_option', 'value': importOption }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'import_media', 'value': importMedia ? '1' : '0' }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'privacy_living', 'value': privacyLiving ? '1' : '0' }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'privacy_notes', 'value': privacyNotes ? '1' : '0' }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'completed_at', 'value': Date.now() }));
+            form.append($('<input>', { 'type': 'hidden', 'name': 'hp_import_completion_nonce', 'value': '<?php echo wp_create_nonce('hp_import_completion'); ?>' }));
+            
+            // Append to body and submit
+            $('body').append(form);
+            console.log('STEP 3 DEBUG - Submitting POST form to Step 4');
+            form.submit();
         }
 
         // Start import on page load

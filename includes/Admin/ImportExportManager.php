@@ -136,6 +136,13 @@ class ImportExportManager
         // Get the import step, default to 1
         $step = isset($_GET['step']) ? intval($_GET['step']) : 1;
 
+        // DEBUG: Add step routing debugging
+        error_log('ImportExportManager::render_import_tab() - Step routing debug:');
+        error_log('  $_GET[step]: ' . (isset($_GET['step']) ? $_GET['step'] : 'NOT SET'));
+        error_log('  intval($_GET[step]): ' . (isset($_GET['step']) ? intval($_GET['step']) : 'N/A'));
+        error_log('  Final $step value: ' . $step);
+        error_log('  $_GET contents: ' . print_r($_GET, true));
+
         // Get available trees for import selection
         $trees = $this->get_trees();
 
@@ -144,6 +151,7 @@ class ImportExportManager
         $tree_id = isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : (isset($_GET['tree_id']) ? sanitize_text_field($_GET['tree_id']) : '');
         $new_tree_name = isset($_POST['new_tree_name']) ? sanitize_text_field($_POST['new_tree_name']) : (isset($_GET['new_tree_name']) ? sanitize_text_field($_GET['new_tree_name']) : '');
         $import_option = isset($_POST['import_option']) ? sanitize_text_field($_POST['import_option']) : (isset($_GET['import_option']) ? sanitize_text_field($_GET['import_option']) : 'replace');
+
         // If we have a tree_id, get the tree information
         $selected_tree = null;
         $selected_tree_name = '';
@@ -157,7 +165,9 @@ class ImportExportManager
             }
         } elseif ($tree_id === 'new' && !empty($new_tree_name)) {
             $selected_tree_name = $new_tree_name;
-        }        // Use the import.php template which will include the correct step
+        }
+
+        // Use the import.php template which will include the correct step
         include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import/import.php';
     }
 

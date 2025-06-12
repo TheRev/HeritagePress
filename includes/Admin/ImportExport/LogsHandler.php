@@ -99,6 +99,14 @@ class LogsHandler extends BaseManager
                 return false;
             }
 
+            // Filter by status (from details)
+            if (isset($filters['status']) && !empty($filters['status'])) {
+                $log_status = isset($log['details']['status']) ? $log['details']['status'] : '';
+                if ($log_status !== $filters['status']) {
+                    return false;
+                }
+            }
+
             // Filter by date range
             if (isset($filters['date_from'])) {
                 $date_from = strtotime($filters['date_from']);

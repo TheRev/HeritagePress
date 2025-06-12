@@ -65,7 +65,7 @@ class MenuConfig
                 'page_title' => __('Import/Export', 'heritagepress'),
                 'menu_title' => __('Import/Export', 'heritagepress'),
                 'capability' => 'manage_options',
-                'menu_slug' => 'heritagepress-importexport',
+                'menu_slug' => 'heritagepress-import-export',
                 'manager_class' => 'ImportExportManager',
                 'order' => 30
             ],

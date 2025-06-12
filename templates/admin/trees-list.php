@@ -28,8 +28,7 @@ $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : '';
                 class="button button-primary">
                 <span class="dashicons dashicons-plus-alt"></span>
                 <?php _e('Add New Tree', 'heritagepress'); ?>
-            </a>
-            <a href="<?php echo admin_url('admin.php?page=heritagepress-importexport'); ?>" class="button">
+            </a> <a href="<?php echo admin_url('admin.php?page=heritagepress-import-export'); ?>" class="button">
                 <span class="dashicons dashicons-upload"></span>
                 <?php _e('Import GEDCOM', 'heritagepress'); ?>
             </a>
@@ -146,9 +145,8 @@ $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : '';
                                             <?php _e('View', 'heritagepress'); ?>
                                         </a> |
                                     </span>
-                                    <span class="export">
-                                        <a
-                                            href="<?php echo admin_url('admin.php?page=heritagepress-importexport&action=export&tree=' . $tree->treeID); ?>">
+                                    <span class="export"> <a
+                                            href="<?php echo admin_url('admin.php?page=heritagepress-import-export&action=export&tree=' . $tree->treeID); ?>">
                                             <?php _e('Export', 'heritagepress'); ?>
                                         </a> |
                                     </span>
@@ -256,8 +254,8 @@ $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : '';
                                         class="button button-small" title="<?php _e('View Tree', 'heritagepress'); ?>"
                                         target="_blank">
                                         <span class="dashicons dashicons-visibility"></span>
-                                    </a>
-                                    <a href="<?php echo admin_url('admin.php?page=heritagepress-importexport&action=export&tree=' . $tree->treeID); ?>"
+                                    </a> <a
+                                        href="<?php echo admin_url('admin.php?page=heritagepress-import-export&action=export&tree=' . $tree->treeID); ?>"
                                         class="button button-small" title="<?php _e('Export Tree', 'heritagepress'); ?>">
                                         <span class="dashicons dashicons-download"></span>
                                     </a>

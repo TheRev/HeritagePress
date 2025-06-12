@@ -73,13 +73,11 @@ class AssetManagerService
             'url' => 'assets/css/admin.css',
             'deps' => [],
             'pages' => ['heritagepress']
-        ]);
-
-        // Import/Export specific styles
+        ]);        // Import/Export specific styles
         $this->register_asset('style', 'heritagepress-import-export', [
             'url' => 'assets/css/import-export.css',
             'deps' => ['heritagepress-admin'],
-            'pages' => ['heritagepress-importexport']
+            'pages' => ['heritagepress-import-export']
         ]);
 
         // Core admin scripts
@@ -87,32 +85,32 @@ class AssetManagerService
             'url' => 'assets/js/admin.js',
             'deps' => ['jquery'],
             'pages' => ['heritagepress']
-        ]);
-
-        // Import/Export scripts
+        ]);        // Import/Export scripts
         $this->register_asset('script', 'heritagepress-import-export', [
             'url' => 'assets/js/import-export.js',
             'deps' => ['jquery', 'wp-util'],
-            'pages' => ['heritagepress-importexport'],
+            'pages' => ['heritagepress-import-export'],
             'localize' => [
                 'var_name' => 'hp_vars',
                 'data' => [
                     'ajaxurl' => admin_url('admin-ajax.php'),
+                    'hp_admin_url' => admin_url(),
                     'nonce' => wp_create_nonce('hp_admin_nonce'),
                     'hp_i18n' => [
                         'file_too_large' => __('File is too large. Maximum size is 50MB.', 'heritagepress'),
                         'invalid_file_type' => __('Invalid file type. Only .ged and .gedcom files are allowed.', 'heritagepress'),
                         'ajax_error' => __('An error occurred. Please try again.', 'heritagepress'),
+                        'upload_failed' => __('Upload failed. Please try again.', 'heritagepress'),
+                        'no_file' => __('Please select a GEDCOM file to upload.', 'heritagepress'),
+                        'tree_name_required' => __('Please enter a name for the new tree.', 'heritagepress'),
                     ]
                 ]
             ]
-        ]);
-
-        // Date validation module
+        ]);        // Date validation module
         $this->register_asset('script', 'heritagepress-date-validation', [
             'url' => 'assets/js/modules/date-validation.js',
             'deps' => ['jquery'],
-            'pages' => ['heritagepress-importexport']
+            'pages' => ['heritagepress-import-export']
         ]);
     }
 
@@ -132,13 +130,11 @@ class AssetManagerService
             'localize' => null,
             'condition' => null
         ], $config);
-    }
-
-    /**
-     * Enqueue assets for current page
-     *
-     * @param string $hook Current admin page hook
-     */
+    }    /**
+         * Enqueue assets for current page
+         *
+         * @param string $hook Current admin page hook
+         */
     public function enqueue_assets($hook)
     {
         $current_page = $this->get_current_page();
@@ -206,15 +202,13 @@ class AssetManagerService
             }
         }
         return false;
-    }
-
-    /**
-     * Enqueue single asset
-     *
-     * @param string $type Asset type
-     * @param string $handle Asset handle
-     * @param array $config Asset configuration
-     */
+    }    /**
+         * Enqueue single asset
+         *
+         * @param string $type Asset type
+         * @param string $handle Asset handle
+         * @param array $config Asset configuration
+         */
     private function enqueue_single_asset($type, $handle, $config)
     {
         $url = $this->plugin_url . $config['url'];

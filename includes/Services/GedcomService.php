@@ -59,7 +59,7 @@ class GedcomService
     public function import($filepath, $tree_id)
     {
         global $wpdb;
-        
+
         $this->tree_id = $tree_id;
         $this->stats = [
             'individuals' => 0,
@@ -98,7 +98,7 @@ class GedcomService
         } catch (Exception $e) {
             error_log("GEDCOM Import Error: " . $e->getMessage());
             $this->stats['errors'][] = $e->getMessage();
-            
+
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -140,22 +140,22 @@ class GedcomService
     private function parse_header($lines)
     {
         $header_found = false;
-        
+
         foreach ($lines as $line) {
             if (preg_match('/^0 HEAD/', $line)) {
                 $header_found = true;
                 continue;
             }
-            
+
             if ($header_found && preg_match('/^1 GEDC/', $line)) {
                 continue;
             }
-            
+
             if ($header_found && preg_match('/^2 VERS (.+)/', $line, $matches)) {
                 $this->current_version = trim($matches[1]);
                 break;
             }
-            
+
             // Stop at first non-header record
             if ($header_found && preg_match('/^0 @/', $line)) {
                 break;
@@ -191,7 +191,7 @@ class GedcomService
                 continue;
             }
 
-            $level = (int)$matches[1];
+            $level = (int) $matches[1];
             $content = $matches[2];
 
             // Level 0 indicates a new record
@@ -248,6 +248,12 @@ class GedcomService
                 case 'NOTE':
                     $this->process_note($record, $lines);
                     break;
+                case 'REPO':
+                    $this->process_repository($record, $lines);
+                    break;
+                case 'OBJE':
+                    $this->process_media($record, $lines);
+                    break;
                 default:
                     // Skip unsupported record types
                     break;
@@ -289,7 +295,7 @@ class GedcomService
 
         // Insert individual
         $table = $wpdb->prefix . 'hp_individuals';
-        
+
         // Set primary name
         if (!empty($names)) {
             $primary_name = $names[0];
@@ -298,7 +304,7 @@ class GedcomService
         }
 
         $result = $wpdb->insert($table, $individual_data);
-        
+
         if ($result === false) {
             throw new Exception("Failed to insert individual: " . $wpdb->last_error);
         }
@@ -338,7 +344,7 @@ class GedcomService
         // Insert family
         $table = $wpdb->prefix . 'hp_families';
         $result = $wpdb->insert($table, $family_data);
-        
+
         if ($result === false) {
             throw new Exception("Failed to insert family: " . $wpdb->last_error);
         }
@@ -347,14 +353,12 @@ class GedcomService
         $this->stats['families']++;
 
         error_log("Processed family: {$record['id']} -> ID: $family_id");
-    }
-
-    /**
-     * Process source record
-     *
-     * @param array $record
-     * @param array $lines
-     */
+    }    /**
+         * Process source record
+         *
+         * @param array $record
+         * @param array $lines
+         */
     private function process_source($record, $lines)
     {
         global $wpdb;
@@ -363,6 +367,11 @@ class GedcomService
             'tree_id' => $this->tree_id,
             'uuid' => $this->generate_uuid(),
             'external_id' => $record['id'],
+            'title' => '',
+            'author' => '',
+            'publication_info' => '',
+            'call_number' => '',
+            'privacy_level' => 0,
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         ];
@@ -372,13 +381,25 @@ class GedcomService
                 $source_data['title'] = $matches[1];
             } elseif (preg_match('/^1 AUTH (.+)/', $line, $matches)) {
                 $source_data['author'] = $matches[1];
+            } elseif (preg_match('/^1 PUBL (.+)/', $line, $matches)) {
+                $source_data['publication_info'] = $matches[1];
+            } elseif (preg_match('/^1 REPO @(.+)@/', $line, $matches)) {                // Find repository by external_id and get its internal ID
+                $query = $wpdb->prepare(
+                    "SELECT id FROM {$wpdb->prefix}hp_repositories WHERE external_id = %s AND tree_id = %d",
+                    $matches[1],
+                    $this->tree_id
+                );
+                $repo_id = $wpdb->get_var($query);
+                if ($repo_id) {
+                    $source_data['repository_id'] = $repo_id;
+                }
             }
         }
 
         // Insert source
         $table = $wpdb->prefix . 'hp_sources';
         $result = $wpdb->insert($table, $source_data);
-        
+
         if ($result === false) {
             throw new Exception("Failed to insert source: " . $wpdb->last_error);
         }
@@ -417,7 +438,7 @@ class GedcomService
         // Insert note
         $table = $wpdb->prefix . 'hp_notes';
         $result = $wpdb->insert($table, $note_data);
-        
+
         if ($result === false) {
             throw new Exception("Failed to insert note: " . $wpdb->last_error);
         }
@@ -463,15 +484,15 @@ class GedcomService
     private function get_individual_id_by_external($external_id)
     {
         global $wpdb;
-
         $table = $wpdb->prefix . 'hp_individuals';
-        $id = $wpdb->get_var($wpdb->prepare(
+        $query = $wpdb->prepare(
             "SELECT id FROM $table WHERE external_id = %s AND tree_id = %d",
             $external_id,
             $this->tree_id
-        ));
+        );
+        $id = $wpdb->get_var($query);
 
-        return $id ? (int)$id : null;
+        return $id ? (int) $id : null;
     }
 
     /**
@@ -483,11 +504,14 @@ class GedcomService
     {
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
             mt_rand(0, 0x0fff) | 0x4000,
             mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
         );
     }
 
@@ -506,25 +530,23 @@ class GedcomService
         $gedcom .= "1 GEDC\n";
         $gedcom .= "2 VERS 5.5.1\n";
         $gedcom .= "1 CHAR UTF-8\n";
-        $gedcom .= "1 DATE " . date('d M Y') . "\n";
-
-        // Export individuals
+        $gedcom .= "1 DATE " . date('d M Y') . "\n";        // Export individuals
         $individuals_table = $wpdb->prefix . 'hp_individuals';
-        $individuals = $wpdb->get_results($wpdb->prepare(
+        $query = $wpdb->prepare(
             "SELECT * FROM $individuals_table WHERE tree_id = %d ORDER BY id",
             $tree_id
-        ));
+        );
+        $individuals = $wpdb->get_results($query);
 
         foreach ($individuals as $individual) {
             $gedcom .= $this->export_individual($individual);
-        }
-
-        // Export families
+        }        // Export families
         $families_table = $wpdb->prefix . 'hp_families';
-        $families = $wpdb->get_results($wpdb->prepare(
+        $query = $wpdb->prepare(
             "SELECT * FROM $families_table WHERE tree_id = %d ORDER BY id",
             $tree_id
-        ));
+        );
+        $families = $wpdb->get_results($query);
 
         foreach ($families as $family) {
             $gedcom .= $this->export_family($family);
@@ -544,7 +566,7 @@ class GedcomService
     private function export_individual($individual)
     {
         $gedcom = "0 @I{$individual->id}@ INDI\n";
-        
+
         if (!empty($individual->given_names) || !empty($individual->surname)) {
             $name = trim($individual->given_names . ' /' . $individual->surname . '/');
             $gedcom .= "1 NAME $name\n";
@@ -566,7 +588,7 @@ class GedcomService
     private function export_family($family)
     {
         $gedcom = "0 @F{$family->id}@ FAM\n";
-        
+
         if (!empty($family->husband_id)) {
             $gedcom .= "1 HUSB @I{$family->husband_id}@\n";
         }
@@ -576,6 +598,128 @@ class GedcomService
         }
 
         return $gedcom;
+    }
+
+    /**
+     * Process repository record
+     *
+     * @param array $record
+     * @param array $lines
+     */
+    private function process_repository($record, $lines)
+    {
+        global $wpdb;
+
+        $repository_data = [
+            'tree_id' => $this->tree_id,
+            'uuid' => $this->generate_uuid(),
+            'external_id' => $record['id'],
+            'name' => '',
+            'address' => '',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^1 NAME (.+)/', $line, $matches)) {
+                $repository_data['name'] = $matches[1];
+            } elseif (preg_match('/^1 ADDR (.+)/', $line, $matches)) {
+                $repository_data['address'] = $matches[1];
+            }
+        }
+
+        // Insert repository
+        $table = $wpdb->prefix . 'hp_repositories';
+        $result = $wpdb->insert($table, $repository_data);
+
+        if ($result === false) {
+            throw new Exception("Failed to insert repository: " . $wpdb->last_error);
+        }
+
+        // Update stats (add repositories to stats tracking)
+        if (!isset($this->stats['repositories'])) {
+            $this->stats['repositories'] = 0;
+        }
+        $this->stats['repositories']++;
+    }
+
+    /**
+     * Process media object record
+     *
+     * @param array $record
+     * @param array $lines
+     */
+    private function process_media($record, $lines)
+    {
+        global $wpdb;
+
+        $media_data = [
+            'tree_id' => $this->tree_id,
+            'uuid' => $this->generate_uuid(),
+            'external_id' => $record['id'],
+            'title' => '',
+            'filename' => '',
+            'file_path' => '',
+            'mime_type' => '',
+            'file_size' => 0,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^1 FILE (.+)/', $line, $matches)) {
+                $file_path = $matches[1];
+                $media_data['file_path'] = $file_path;
+                $media_data['filename'] = basename($file_path);
+
+                // Try to determine MIME type from extension
+                $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+                $mime_types = [
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'pdf' => 'application/pdf',
+                    'txt' => 'text/plain'
+                ];
+                if (isset($mime_types[$extension])) {
+                    $media_data['mime_type'] = $mime_types[$extension];
+                }
+            } elseif (preg_match('/^1 TITL (.+)/', $line, $matches)) {
+                $media_data['title'] = $matches[1];
+            } elseif (preg_match('/^2 FORM (.+)/', $line, $matches)) {
+                // GEDCOM format field - can help determine MIME type
+                $format = strtolower($matches[1]);
+                if ($format === 'jpeg' || $format === 'jpg') {
+                    $media_data['mime_type'] = 'image/jpeg';
+                } elseif ($format === 'png') {
+                    $media_data['mime_type'] = 'image/png';
+                } elseif ($format === 'gif') {
+                    $media_data['mime_type'] = 'image/gif';
+                } elseif ($format === 'pdf') {
+                    $media_data['mime_type'] = 'application/pdf';
+                }
+            }
+        }
+
+        // If no title provided, use filename without extension
+        if (empty($media_data['title']) && !empty($media_data['filename'])) {
+            $media_data['title'] = pathinfo($media_data['filename'], PATHINFO_FILENAME);
+        }
+
+        // Insert media
+        $table = $wpdb->prefix . 'hp_media';
+        $result = $wpdb->insert($table, $media_data);
+
+        if ($result === false) {
+            throw new Exception("Failed to insert media: " . $wpdb->last_error);
+        }
+
+        // Update stats (add media to stats tracking)
+        if (!isset($this->stats['media'])) {
+            $this->stats['media'] = 0;
+        }
+        $this->stats['media']++;
     }
 
     /**

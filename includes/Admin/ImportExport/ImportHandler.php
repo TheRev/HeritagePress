@@ -16,19 +16,28 @@ namespace HeritagePress\Admin\ImportExport;
 class ImportHandler extends BaseManager
 {
     /**
+     * @var LogsHandler
+     */
+    private $logs_handler;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         parent::__construct();
 
+        // Initialize logs handler
+        $this->logs_handler = new LogsHandler();
+
         // Register import-specific AJAX handlers
         add_action('wp_ajax_hp_upload_gedcom', array($this, 'handle_gedcom_upload'));
         add_action('wp_ajax_hp_process_gedcom', array($this, 'handle_gedcom_process'));
         add_action('wp_ajax_hp_import_progress', array($this, 'get_import_progress'));
-    }    /**
-         * Handle GEDCOM file upload
-         */
+        add_action('wp_ajax_hp_store_import_completion', array($this, 'store_import_completion')); // Register new handler
+    }/**
+     * Handle GEDCOM file upload
+     */
     public function handle_gedcom_upload()
     {
         // Verify nonce - match the form nonce field name and action
@@ -75,21 +84,44 @@ class ImportHandler extends BaseManager
             // Generate unique filename
             $file_key = uniqid('gedcom_', true);
             $filename = $file_key . '.ged';
-            $filepath = $gedcom_dir . '/' . $filename;
-
-            // Move uploaded file
+            $filepath = $gedcom_dir . '/' . $filename;            // Move uploaded file
             if (!move_uploaded_file($file['tmp_name'], $filepath)) {
                 wp_send_json_error(array('message' => __('Failed to save uploaded file', 'heritagepress')));
                 return;
-            }            // Validate GEDCOM format
+            }
+
+            // Log the file upload
+            $file_size = $file['size'];
+            $this->logs_handler->log_import(
+                'file_uploaded',
+                sprintf('GEDCOM file uploaded: %s (%.2f MB)', $file['name'], $file_size / 1024 / 1024),
+                array(
+                    'filename' => $file['name'],
+                    'file_size' => $file_size,
+                    'file_key' => $file_key,
+                    'status' => 'success'
+                )
+            );// Validate GEDCOM format
             $validation_result = $this->validate_gedcom_file($filepath);
 
             // Debug logging
             error_log('GEDCOM validation for file: ' . $filepath);
             error_log('Validation result: ' . print_r($validation_result, true));
-
             if (!$validation_result['valid']) {
                 error_log('GEDCOM validation failed, removing file: ' . $filepath);
+
+                // Log validation failure
+                $this->logs_handler->log_import(
+                    'validation_failed',
+                    sprintf('GEDCOM validation failed: %s', $file['name']),
+                    array(
+                        'filename' => $file['name'],
+                        'file_key' => $file_key,
+                        'status' => 'error',
+                        'error_message' => $validation_result['message']
+                    )
+                );
+
                 unlink($filepath); // Remove invalid file
                 wp_send_json_error(array('message' => $validation_result['message']));
                 return;
@@ -119,11 +151,19 @@ class ImportHandler extends BaseManager
             return;
         }
         $file_key = sanitize_text_field($_POST['file_key'] ?? '');
-        $tree_id = intval($_POST['tree_id'] ?? 0);
-        $import_option = sanitize_text_field($_POST['import_option'] ?? 'new');
+        $tree_id_input = sanitize_text_field($_POST['tree_id'] ?? 'new');
+        $import_option = sanitize_text_field($_POST['import_option'] ?? 'replace');        // Determine if we need to create a new tree
+        $creating_new_tree = ($tree_id_input === 'new');
+        $tree_id = $creating_new_tree ? 0 : intval($tree_id_input);
+
+        // Handle "replace existing data" option for existing trees
+        if (!$creating_new_tree && $import_option === 'replace') {
+            error_log('GEDCOM Import: Replace mode - clearing existing data from tree_id=' . $tree_id);
+            $this->clear_tree_data($tree_id);
+        }
 
         // File key is now optional - proceed with import process regardless
-        error_log('GEDCOM process handler: file_key=' . $file_key . ', tree_id=' . $tree_id . ', import_option=' . $import_option);
+        error_log('GEDCOM process handler: file_key=' . $file_key . ', tree_id_input=' . $tree_id_input . ', tree_id=' . $tree_id . ', import_option=' . $import_option . ', creating_new_tree=' . ($creating_new_tree ? 'true' : 'false'));
 
         try {
             $upload_info = $this->get_upload_dir();
@@ -150,11 +190,17 @@ class ImportHandler extends BaseManager
                     wp_send_json_error(array('message' => __('No GEDCOM file found for import', 'heritagepress')));
                     return;
                 }
-            }
+            }            // Handle tree creation/selection
+            if ($creating_new_tree) {
+                $tree_name = sanitize_text_field($_POST['new_tree_name'] ?? $_POST['tree_name'] ?? '');
 
-            // Handle tree creation/selection
-            if ($import_option === 'new') {
-                $tree_name = sanitize_text_field($_POST['tree_name'] ?? '');
+                // Debug logging for tree name issue
+                error_log('GEDCOM Import Debug: creating_new_tree=true');
+                error_log('GEDCOM Import Debug: $_POST[new_tree_name]=' . ($_POST['new_tree_name'] ?? 'NOT_SET'));
+                error_log('GEDCOM Import Debug: $_POST[tree_name]=' . ($_POST['tree_name'] ?? 'NOT_SET'));
+                error_log('GEDCOM Import Debug: $tree_name after sanitization=' . $tree_name);
+                error_log('GEDCOM Import Debug: Full $_POST data: ' . print_r($_POST, true));
+
                 if (empty($tree_name)) {
                     wp_send_json_error(array('message' => __('Tree name is required for new tree', 'heritagepress')));
                     return;
@@ -165,34 +211,79 @@ class ImportHandler extends BaseManager
                     wp_send_json_error(array('message' => __('Failed to create new tree', 'heritagepress')));
                     return;
                 }
-            }            // Create progress tracking
+            }// Create progress tracking
             $progress_data = $this->initialize_import_progress($file_key, $tree_id);            // Process GEDCOM import using GedcomService
             error_log('GEDCOM Import: Starting import process for file: ' . $gedcom_file);
+
+            // Log import start
+            $filename = basename($gedcom_file);
+            $this->logs_handler->log_import(
+                'import_started',
+                sprintf('GEDCOM import started: %s', $filename),
+                array(
+                    'filename' => $filename,
+                    'tree_id' => $tree_id,
+                    'file_key' => $file_key,
+                    'import_option' => $import_option,
+                    'status' => 'in_progress'
+                )
+            );
+
             $import_result = $this->get_gedcom_service()->import($gedcom_file, $tree_id);
             error_log('GEDCOM Import: Received result: ' . json_encode($import_result));
-
             if ($import_result && $import_result['success']) {
                 error_log('GEDCOM Import: Success condition met - setting completion status');
-                // Update progress to completion
+                // Update progress to completion with actual statistics
                 $progress_data['completed'] = true;
                 $progress_data['percent'] = 100;
                 $progress_data['operation'] = __('Import completed successfully', 'heritagepress');
+                $progress_data['stats'] = $import_result['stats']; // Store the actual import statistics
+                $progress_data['duration'] = time() - ($progress_data['start_time'] ?? time()); // Calculate duration
                 $this->update_import_progress($file_key, $progress_data);
                 error_log('GEDCOM Import: Progress updated to completed, sending success response');
+
+                // Log successful import completion
+                $this->logs_handler->log_import(
+                    'import_completed',
+                    sprintf('GEDCOM import completed successfully: %s', $filename),
+                    array(
+                        'filename' => $filename,
+                        'tree_id' => $tree_id,
+                        'file_key' => $file_key,
+                        'status' => 'success',
+                        'records' => $import_result['stats']['processed'] ?? 0,
+                        'individuals' => $import_result['stats']['individuals'] ?? $import_result['stats']['people'] ?? 0,
+                        'families' => $import_result['stats']['families'] ?? 0,
+                        'duration' => $progress_data['duration'],
+                        'import_option' => $import_option
+                    )
+                );
+
+                // Build the redirect URL for Step 4 with all necessary parameters
+                $redirect_url = add_query_arg(array(
+                    'page' => 'heritagepress-import-export',
+                    'tab' => 'import',
+                    'step' => '4',
+                    'file' => $file_key,
+                    'tree_id' => $tree_id,
+                    'import_option' => $import_option,
+                    'completed' => '1'
+                ), admin_url('admin.php'));
+
                 wp_send_json_success(array(
                     'message' => __('GEDCOM import completed successfully', 'heritagepress'),
                     'tree_id' => $tree_id,
                     'file_key' => $file_key,
                     'stats' => $import_result['stats'],
                     'completed' => true,
-                    'percent' => 100
+                    'percent' => 100,
+                    'redirect_url' => $redirect_url
                 ));
             } else {
                 error_log('GEDCOM Import: Failure condition - import_result success is false or missing');
                 $error_message = $import_result['message'] ?? __('GEDCOM import failed', 'heritagepress');
                 throw new \Exception($error_message);
             }
-
         } catch (\Exception $e) {
             // Update progress with error
             if (isset($progress_data)) {
@@ -200,6 +291,20 @@ class ImportHandler extends BaseManager
                 $progress_data['operation'] = __('Import failed', 'heritagepress');
                 $this->update_import_progress($file_key, $progress_data);
             }
+
+            // Log import failure
+            $this->logs_handler->log_import(
+                'import_failed',
+                sprintf('GEDCOM import failed: %s', isset($filename) ? $filename : 'unknown file'),
+                array(
+                    'filename' => isset($filename) ? $filename : 'unknown',
+                    'tree_id' => isset($tree_id) ? $tree_id : null,
+                    'file_key' => $file_key,
+                    'status' => 'error',
+                    'error_message' => $e->getMessage(),
+                    'import_option' => isset($import_option) ? $import_option : null
+                )
+            );
 
             wp_send_json_error(array('message' => $e->getMessage()));
         }
@@ -315,21 +420,23 @@ class ImportHandler extends BaseManager
                 'encoding' => 'UTF-8'  // TODO: Parse actual encoding
             )
         );
-    }
-
-    /**
-     * Create a new tree
-     * 
-     * @param string $tree_name Tree name
-     * @return int|false Tree ID or false on failure
-     */
+    }    /**
+         * Create a new tree
+         * 
+         * @param string $tree_name Tree name
+         * @return int|false Tree ID or false on failure
+         */
     private function create_new_tree($tree_name)
     {
         global $wpdb;
 
+        // Generate a unique GEDCOM identifier from the tree name
+        $gedcom_id = $this->generate_unique_gedcom_id($tree_name);
+
         $result = $wpdb->insert(
             $wpdb->prefix . 'hp_trees',
             array(
+                'gedcom' => $gedcom_id,
                 'title' => $tree_name,
                 'description' => __('Imported from GEDCOM', 'heritagepress'),
                 'privacy_level' => 0,
@@ -337,10 +444,86 @@ class ImportHandler extends BaseManager
                 'created_at' => current_time('mysql'),
                 'updated_at' => current_time('mysql')
             ),
-            array('%s', '%s', '%d', '%d', '%s', '%s')
+            array('%s', '%s', '%s', '%d', '%d', '%s', '%s')
         );
+        if ($result) {
+            error_log('GEDCOM Import: Successfully created new tree with ID: ' . $wpdb->insert_id . ', GEDCOM: ' . $gedcom_id);
 
-        return $result ? $wpdb->insert_id : false;
+            // Log tree creation
+            $this->logs_handler->log_import(
+                'tree_created',
+                sprintf('New family tree created: %s', $tree_name),
+                array(
+                    'tree_name' => $tree_name,
+                    'tree_id' => $wpdb->insert_id,
+                    'gedcom_id' => $gedcom_id,
+                    'status' => 'success'
+                )
+            );
+
+            return $wpdb->insert_id;
+        } else {
+            error_log('GEDCOM Import: Failed to create new tree. Error: ' . $wpdb->last_error);
+
+            // Log tree creation failure
+            $this->logs_handler->log_import(
+                'tree_creation_failed',
+                sprintf('Failed to create family tree: %s', $tree_name),
+                array(
+                    'tree_name' => $tree_name,
+                    'status' => 'error',
+                    'error_message' => $wpdb->last_error
+                )
+            );
+
+            return false;
+        }
+    }    /**
+         * Generate a unique GEDCOM identifier from tree name
+         * 
+         * @param string $tree_name Tree name
+         * @return string Unique GEDCOM identifier
+         */
+    private function generate_unique_gedcom_id($tree_name)
+    {
+        global $wpdb;
+
+        // Create base GEDCOM ID from tree name
+        $base_gedcom = strtolower(trim($tree_name));
+        $base_gedcom = preg_replace('/[^a-z0-9_-]/', '_', $base_gedcom);
+        $base_gedcom = preg_replace('/_+/', '_', $base_gedcom); // Replace multiple underscores with single
+        $base_gedcom = trim($base_gedcom, '_'); // Remove leading/trailing underscores
+        $base_gedcom = substr($base_gedcom, 0, 15); // Keep it reasonably short
+
+        // If empty after sanitization, use default
+        if (empty($base_gedcom)) {
+            $base_gedcom = 'imported_tree';
+        }
+
+        // Check if the GEDCOM ID already exists and make it unique
+        $gedcom_id = $base_gedcom;
+        $counter = 1;
+
+        while (true) {
+            // Simple check for existing GEDCOM ID
+            $table_name = $wpdb->prefix . 'hp_trees';
+            $results = $wpdb->get_results("SELECT gedcom FROM `{$table_name}` WHERE `gedcom` = '" . esc_sql($gedcom_id) . "'");
+
+            if (empty($results)) {
+                break; // This GEDCOM ID is unique
+            }
+
+            $gedcom_id = $base_gedcom . '_' . $counter;
+            $counter++;
+
+            // Safety check to prevent infinite loop
+            if ($counter > 1000) {
+                $gedcom_id = $base_gedcom . '_' . time();
+                break;
+            }
+        }
+
+        return $gedcom_id;
     }
 
     /**
@@ -358,6 +541,7 @@ class ImportHandler extends BaseManager
             'percent' => 0,
             'operation' => __('Initializing import...', 'heritagepress'),
             'detail' => '',
+            'start_time' => time(), // Add start time for duration calculation
             'stats' => array(
                 'processed' => 0,
                 'individuals' => 0,
@@ -580,5 +764,90 @@ class ImportHandler extends BaseManager
             return substr($content, 4);
         }
         return $content;
+    }    /**
+         * Store import completion data in transient for Step 4 retrieval
+         */
+    public function store_import_completion()
+    {
+        error_log('AJAX HANDLER DEBUG - store_import_completion() called');
+        error_log('POST data: ' . print_r($_POST, true));
+
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'hp_import_completion')) {
+            wp_send_json_error(array('message' => __('Security check failed', 'heritagepress')));
+            return;
+        }
+
+        // Get completion data
+        $completion_data = json_decode(stripslashes($_POST['completion_data']), true);
+
+        if (!$completion_data) {
+            wp_send_json_error(array('message' => __('Invalid completion data', 'heritagepress')));
+            return;
+        }        // Generate unique token
+        $token = md5(uniqid(rand(), true));
+
+        // Store data in transient (expires in 1 hour)
+        set_transient('hp_import_completion_' . $token, $completion_data, HOUR_IN_SECONDS);
+
+        error_log('Stored import completion data with token: ' . $token);
+        error_log('Completion data: ' . print_r($completion_data, true));
+
+        wp_send_json_success(array('token' => $token));
+    }
+
+    /**
+     * Clear all data from an existing tree (for replace option)
+     * 
+     * @param int $tree_id Tree ID to clear
+     * @return bool Success status
+     */
+    private function clear_tree_data($tree_id)
+    {
+        global $wpdb;
+
+        if (empty($tree_id)) {
+            error_log('GEDCOM Import: Cannot clear tree data - invalid tree_id');
+            return false;
+        }
+
+        // Start transaction for data consistency
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            // Tables to clear (in order to respect foreign key constraints)
+            $tables_to_clear = [
+                'hp_children',
+                'hp_events',
+                'hp_media',
+                'hp_sources',
+                'hp_notes',
+                'hp_families',
+                'hp_individuals'
+            ];
+
+            $cleared_count = 0;
+            foreach ($tables_to_clear as $table) {
+                $table_name = $wpdb->prefix . $table;
+                $result = $wpdb->delete($table_name, ['tree_id' => $tree_id], ['%d']);
+
+                if ($result !== false) {
+                    $cleared_count += $result;
+                    error_log("GEDCOM Import: Cleared $result records from $table_name");
+                } else {
+                    error_log("GEDCOM Import: Failed to clear $table_name: " . $wpdb->last_error);
+                    throw new \Exception("Failed to clear existing tree data from $table_name");
+                }
+            }
+
+            $wpdb->query('COMMIT');
+            error_log("GEDCOM Import: Successfully cleared $cleared_count total records from tree_id=$tree_id");
+            return true;
+
+        } catch (\Exception $e) {
+            $wpdb->query('ROLLBACK');
+            error_log('GEDCOM Import: Failed to clear tree data: ' . $e->getMessage());
+            return false;
+        }
     }
 }

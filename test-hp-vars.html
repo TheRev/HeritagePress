@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HP Vars Test</title>
+</head>
+
+<body>
+    <h2>HeritagePress JavaScript Variables Test</h2>
+
+    <script>
+        // Check if we're in WordPress admin
+        console.log('Testing hp_vars availability...');
+
+        if (typeof hp_vars !== 'undefined') {
+            console.log('hp_vars is available:', hp_vars);
+            console.log('hp_admin_url:', hp_vars.hp_admin_url);
+            console.log('ajaxurl:', hp_vars.ajaxurl);
+        } else {
+            console.log('hp_vars is NOT available');
+        }
+
+        // Test the redirect URL construction
+        if (typeof hp_vars !== 'undefined' && hp_vars.hp_admin_url) {
+            var testFileKey = 'test123';
+            var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-importexport&tab=import&step=2&file=' + encodeURIComponent(testFileKey);
+            console.log('Test redirect URL would be:', redirectUrl);
+        }
+    </script>
+
+    <p>Check browser console for hp_vars information.</p>
+    <p><a href="http://localhost:8888/wordpress/wp-admin/admin.php?page=heritagepress-importexport&tab=import">Back to
+            Import Page</a></p>
+</body>
+
+</html>

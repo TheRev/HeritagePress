@@ -12,10 +12,21 @@ if (!defined('ABSPATH')) {
 // Get file key from URL
 $file_key = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
 
-// Get import options from step 1
-$tree_id = isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : 'new';
-$new_tree_name = isset($_POST['new_tree_name']) ? sanitize_text_field($_POST['new_tree_name']) : '';
-$import_option = isset($_POST['import_option']) ? sanitize_text_field($_POST['import_option']) : 'replace';
+// Get import options from step 1 - check both GET (from redirect) and POST (from form submission)
+$tree_id = isset($_GET['tree_id']) ? sanitize_text_field($_GET['tree_id']) : (isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : 'new');
+$new_tree_name = isset($_GET['new_tree_name']) ? sanitize_text_field($_GET['new_tree_name']) : (isset($_POST['new_tree_name']) ? sanitize_text_field($_POST['new_tree_name']) : '');
+$import_option = isset($_GET['import_option']) ? sanitize_text_field($_GET['import_option']) : (isset($_POST['import_option']) ? sanitize_text_field($_POST['import_option']) : 'replace');
+
+// Debug: Log the parameter values being received in step 2
+error_log('Step 2 Debug - GET parameters: ' . print_r($_GET, true));
+error_log('Step 2 Debug - POST parameters: ' . print_r($_POST, true));
+error_log('Step 2 Debug - Extracted values - tree_id: ' . $tree_id . ', new_tree_name: ' . $new_tree_name . ', import_option: ' . $import_option);
+
+// TEMPORARY FIX: If tree name is empty and we're creating a new tree, provide a default name
+if ($tree_id === 'new' && empty($new_tree_name)) {
+    $new_tree_name = 'Imported Tree ' . date('Y-m-d H:i:s');
+    error_log('Step 2 Debug - Tree name was empty, using default: ' . $new_tree_name);
+}
 
 // Get real GEDCOM analysis instead of dummy data
 $validation_result = null;
@@ -357,15 +368,18 @@ $top_places = !empty($validation_result['places']) ? array_keys($validation_resu
 
     <div class="heritagepress-actions">
         <a href="<?php echo admin_url('admin.php?page=heritagepress-import'); ?>" class="button button-secondary">
-            <?php echo esc_html__('← Back to Upload', 'heritagepress'); ?>
-        </a> <?php if (!$validation_result['has_errors']): ?>
+            <?php echo esc_html__('← Back to Upload', 'heritagepress'); ?> </a>
+        <?php if (!$validation_result['has_errors']): ?>
             <form method="post"
-                action="<?php echo admin_url('admin.php?page=heritagepress-importexport&step=3&file=' . urlencode($file_key)); ?>"
+                action="<?php echo admin_url('admin.php?page=heritagepress-import-export&tab=import&step=3&file=' . urlencode($file_key)); ?>"
                 style="display: inline;">
-                <?php wp_nonce_field('hp_gedcom_nonce', 'hp_gedcom_nonce'); ?>
-                <input type="hidden" name="tree_id" value="<?php echo esc_attr($tree_id); ?>">
+                <?php wp_nonce_field('hp_gedcom_upload', 'hp_gedcom_nonce'); ?> <input type="hidden" name="tree_id"
+                    value="<?php echo esc_attr($tree_id); ?>">
                 <input type="hidden" name="new_tree_name" value="<?php echo esc_attr($new_tree_name); ?>">
                 <input type="hidden" name="import_option" value="<?php echo esc_attr($import_option); ?>">
+                <input type="hidden" name="import_media" value="1">
+                <input type="hidden" name="privacy_living" value="0">
+                <input type="hidden" name="privacy_notes" value="0">
                 <button type="submit" class="button button-primary">
                     <?php echo esc_html__('Continue to Import →', 'heritagepress'); ?>
                 </button>

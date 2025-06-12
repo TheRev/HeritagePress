@@ -13,8 +13,7 @@
     /**
    * Main HeritagePress Import/Export handler
    */
-    window.HeritagePress.ImportExport = {
-        /**
+    window.HeritagePress.ImportExport = {        /**
          * Initialize the import/export functionality
          */
         init: function () {
@@ -25,40 +24,50 @@
 
             // Initialize common functionality
             this.initCommon();
-        },
-
-        /**
+        },        /**
          * Initialize functionality based on current tab
          */        initCurrentTab: function () {
             var urlParams = new URLSearchParams(window.location.search);
-            var tab = urlParams.get('tab') || 'tables';
+            var tab = urlParams.get('tab') || 'import';
+
+            console.log('Current tab detected:', tab);
+            console.log('URL search params:', window.location.search);
 
             switch (tab) {
                 case 'tables':
+                    console.log('Initializing tables tab');
                     this.initTables();
                     break;
                 case 'import':
+                    console.log('Initializing import tab');
                     this.initImport();
                     break;
                 case 'export':
+                    console.log('Initializing export tab');
                     this.initExport();
                     break;
                 case 'settings':
+                    console.log('Initializing settings tab');
                     this.initSettings();
                     break;
                 case 'logs':
+                    console.log('Initializing logs tab');
                     this.initLogs();
                     break;
+                default:
+                    console.log('Unknown tab, defaulting to import');
+                    this.initImport();
+                    break;
             }
-        },        /**
+        },/**
          * Initialize tables functionality
          */
         initTables: function () {
             console.log('Initializing tables functionality');
-            
+
             // Bulk table management
             this.initBulkTableActions();
-            
+
             // Individual table management is handled in the template's inline JavaScript
         },
 
@@ -67,28 +76,28 @@
          */
         initBulkTableActions: function () {
             // Rebuild tables
-            $('#hp-rebuild-tables').on('click', function() {
+            $('#hp-rebuild-tables').on('click', function () {
                 if (confirm(hp_i18n.confirm_rebuild_tables || 'Are you sure you want to rebuild all tables?')) {
                     HeritagePress.ImportExport.performBulkTableAction('hp_rebuild_tables', 'Rebuilding tables...');
                 }
             });
-            
+
             // Optimize tables
-            $('#hp-optimize-tables').on('click', function() {
+            $('#hp-optimize-tables').on('click', function () {
                 if (confirm(hp_i18n.confirm_optimize_tables || 'Are you sure you want to optimize all tables?')) {
                     HeritagePress.ImportExport.performBulkTableAction('hp_optimize_tables', 'Optimizing tables...');
                 }
             });
-            
+
             // Clear all tables
-            $('#hp-clear-all-tables').on('click', function() {
+            $('#hp-clear-all-tables').on('click', function () {
                 if (confirm(hp_i18n.confirm_clear_all_tables || 'Are you sure you want to clear all table data?')) {
                     HeritagePress.ImportExport.performBulkTableAction('hp_clear_all_tables', 'Clearing table data...');
                 }
             });
-            
+
             // Delete all tables
-            $('#hp-delete-all-tables').on('click', function() {
+            $('#hp-delete-all-tables').on('click', function () {
                 if (confirm(hp_i18n.confirm_delete_all_tables || 'Are you sure you want to delete all tables? This cannot be undone!')) {
                     HeritagePress.ImportExport.performBulkTableAction('hp_delete_all_tables', 'Deleting tables...');
                 }
@@ -98,12 +107,12 @@
         /**
          * Perform bulk table action
          */
-        performBulkTableAction: function(action, loadingText) {
+        performBulkTableAction: function (action, loadingText) {
             var button = $('#' + action.replace('hp_', 'hp-'));
             var originalText = button.html();
-            
+
             button.prop('disabled', true).html('<span class="dashicons dashicons-update-alt"></span> ' + loadingText);
-            
+
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
@@ -111,20 +120,20 @@
                     action: action,
                     nonce: $('#hp_table_nonce').val() || wp.ajax.settings.nonce
                 },
-                success: function(response) {
+                success: function (response) {
                     button.prop('disabled', false).html(originalText);
-                    
+
                     if (response.success) {
                         HeritagePress.ImportExport.showMessage('success', response.data.message);
                         // Refresh page after successful operation
-                        setTimeout(function() {
+                        setTimeout(function () {
                             location.reload();
                         }, 2000);
                     } else {
                         HeritagePress.ImportExport.showMessage('error', response.data.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     button.prop('disabled', false).html(originalText);
                     HeritagePress.ImportExport.showMessage('error', 'An error occurred while performing the operation.');
                 }
@@ -179,14 +188,20 @@
         initSettings: function () {
             // Settings form handling
             $('#hp-settings-form').on('submit', this.handleSettingsSubmit.bind(this));
-        },
-
-        /**
+        },        /**
          * Initialize logs functionality
          */
         initLogs: function () {
+            console.log('=== LOGS TAB INITIALIZATION START ===');
+            console.log('Logs tab initialization called');
+
             // Log filtering and pagination
             this.initLogFilters();
+
+            // Log details toggle functionality
+            this.initLogDetailsToggle();
+
+            console.log('=== LOGS TAB INITIALIZATION COMPLETE ===');
         },
 
         /**
@@ -343,9 +358,8 @@
                     return xhr;
                 }, success: function (response) {
                     console.log('AJAX Response:', response);
-                    if (response.success) {
-                        // Redirect to step 2
-                        var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-importexport&tab=import&step=2&file=' + encodeURIComponent(response.data.file_key);
+                    if (response.success) {                        // Redirect to step 2
+                        var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-import-export&tab=import&step=2&file=' + encodeURIComponent(response.data.file_key);
                         window.location.href = redirectUrl;
                     } else {
                         console.error('Upload failed:', response.data);
@@ -448,11 +462,10 @@
 
         /**
          * Handle import completion
-         */
-        handleImportComplete: function (progress) {
+         */        handleImportComplete: function (progress) {
             if (progress.success) {
                 // Redirect to results page
-                var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-importexport&tab=import&step=4&file=' + encodeURIComponent(progress.file_key);
+                var redirectUrl = hp_vars.hp_admin_url + 'admin.php?page=heritagepress-import-export&tab=import&step=4&file=' + encodeURIComponent(progress.file_key);
                 window.location.href = redirectUrl;
             } else {
                 alert(progress.message || 'Import failed. Please check the logs for details.');
@@ -464,13 +477,70 @@
          */
         initFormValidation: function () {
             // Add any common form validation here
-        },
-
-        /**
+        },        /**
          * Initialize log filters
          */
         initLogFilters: function () {
-            // Add log filtering functionality here
+            // Log filter form submission
+            $('#hp-log-filter-form').on('submit', function () {
+                // This form performs a normal non-AJAX submission
+                return true;
+            });
+        },
+
+        /**
+         * Initialize log details toggle functionality
+         */
+        initLogDetailsToggle: function () {
+            console.log('Initializing log details toggle');
+
+            // Log details toggle
+            $(document).on('click', '.hp-log-details-toggle', function (e) {
+                e.preventDefault();
+                console.log('Log details toggle clicked');
+
+                var $toggle = $(this);
+                var $detailsRow = $toggle.closest('tr').next('.hp-log-details-row');
+
+                if ($detailsRow.length) {
+                    $detailsRow.toggle();
+
+                    // Update toggle text
+                    if ($detailsRow.is(':visible')) {
+                        $toggle.text('Hide Details');
+                    } else {
+                        $toggle.text('View Details');
+                    }
+                } else {
+                    console.warn('Details row not found for log entry');
+                }
+            });
+        },
+
+        /**
+         * Show message to user
+         */
+        showMessage: function (type, message) {
+            // Remove existing messages
+            $('.hp-message').remove();
+
+            // Create new message
+            var $message = $('<div class="hp-message notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>');
+
+            // Add to page
+            $('.wrap h1').after($message);
+
+            // Auto-dismiss after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(function () {
+                    $message.fadeOut();
+                }, 5000);
+            }
+
+            // Scroll to message
+            $('html, body').animate({
+                scrollTop: $message.offset().top - 50
+            }, 300);
         },
 
         /**

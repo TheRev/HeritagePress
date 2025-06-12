@@ -212,9 +212,8 @@ class MenuManager
                             </a>
                         </div>
                         <div class="welcome-panel-column">
-                            <h3><?php _e('Import Data', 'heritagepress'); ?></h3>
-                            <a class="button button-secondary"
-                                href="<?php echo admin_url('admin.php?page=heritagepress-importexport'); ?>">
+                            <h3><?php _e('Import Data', 'heritagepress'); ?></h3> <a class="button button-secondary"
+                                href="<?php echo admin_url('admin.php?page=heritagepress-import-export'); ?>">
                                 <?php _e('Import GEDCOM', 'heritagepress'); ?>
                             </a>
                         </div>

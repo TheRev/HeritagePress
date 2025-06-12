@@ -35,6 +35,16 @@ trait DatabaseOperations
             $result = $this->wpdb->get_results($query);
         }
 
+        // Ensure we return the results with the correct ID field name
+        // The database uses 'treeID' but we need 'id' for consistency
+        if (!empty($result)) {
+            foreach ($result as $tree) {
+                if (property_exists($tree, 'treeID') && !property_exists($tree, 'id')) {
+                    $tree->id = $tree->treeID;
+                }
+            }
+        }
+
         return $result;
     }
     public function get_event_types()

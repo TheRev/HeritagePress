@@ -151,24 +151,23 @@ class GedcomServiceSimplified
         }
 
         return $records;
-    }
-
-    /**
-     * Import individual person record
-     */
+    }    /**
+         * Import individual person record
+         */
     private function import_individual($record)
     {
         $data = [
             'gedcom' => $this->gedcom_id,
-            'person_id' => $record['id'],
+            'personID' => $record['id'], // Use TNG column name
+            'lnprefix' => '', // TNG has this field
             'lastname' => '',
             'firstname' => '',
             'birthdate' => '',
-            'birthdate_parsed' => null,
+            'birthdatetr' => null, // TNG column name
             'sex' => '',
             'birthplace' => '',
             'deathdate' => '',
-            'deathdate_parsed' => null,
+            'deathdatetr' => null, // TNG column name
             'deathplace' => '',
             'nickname' => '',
             'title' => '',
@@ -176,7 +175,8 @@ class GedcomServiceSimplified
             'suffix' => '',
             'living' => 1,
             'private' => 0,
-            'change_date' => current_time('mysql')
+            'changedate' => current_time('mysql'), // TNG column name
+            'changedby' => 'GEDCOM Import'
         ];
 
         foreach ($record['data'] as $line) {
@@ -229,15 +229,14 @@ class GedcomServiceSimplified
             if (preg_match('/^1 /', $line)) {
                 break;
             }
-
             if (preg_match('/^2 DATE (.+)/', $line, $matches)) {
                 $date_str = trim($matches[1]);
                 if ($event_type === 'BIRT') {
                     $data['birthdate'] = $date_str;
-                    $data['birthdate_parsed'] = $this->parse_date($date_str);
+                    $data['birthdatetr'] = $this->parse_date($date_str); // Changed from birthdate_parsed
                 } elseif ($event_type === 'DEAT') {
                     $data['deathdate'] = $date_str;
-                    $data['deathdate_parsed'] = $this->parse_date($date_str);
+                    $data['deathdatetr'] = $this->parse_date($date_str); // Changed from deathdate_parsed
                 }
             } elseif (preg_match('/^2 PLAC (.+)/', $line, $matches)) {
                 if ($event_type === 'BIRT') {
@@ -256,19 +255,20 @@ class GedcomServiceSimplified
     {
         $data = [
             'gedcom' => $this->gedcom_id,
-            'family_id' => $record['id'],
+            'familyID' => $record['id'], // Use TNG column name
             'husband' => '',
             'wife' => '',
-            'marriage_date' => '',
-            'marriage_date_parsed' => null,
-            'marriage_place' => '',
-            'divorce_date' => '',
-            'divorce_date_parsed' => null,
-            'divorce_place' => '',
+            'marrdate' => '', // TNG column name
+            'marrdatetr' => null, // TNG column name
+            'marrplace' => '', // TNG column name
+            'divdate' => '', // TNG column name
+            'divdatetr' => null, // TNG column name
+            'divplace' => '', // TNG column name
             'status' => '',
             'living' => 1,
             'private' => 0,
-            'change_date' => current_time('mysql')
+            'changedate' => current_time('mysql'), // TNG column name
+            'changedby' => 'GEDCOM Import'
         ];
 
         $children = [];
@@ -302,9 +302,9 @@ class GedcomServiceSimplified
                     $this->wpdb->prefix . 'hp_children',
                     [
                         'gedcom' => $this->gedcom_id,
-                        'family_id' => $record['id'],
-                        'person_id' => $child_id,
-                        'order_num' => $i + 1
+                        'familyID' => $record['id'], // Use TNG column name
+                        'personID' => $child_id, // Use TNG column name
+                        'ordernum' => $i + 1
                     ]
                 );
             }
@@ -327,12 +327,11 @@ class GedcomServiceSimplified
 
             if (preg_match('/^1 /', $line))
                 break;
-
             if (preg_match('/^2 DATE (.+)/', $line, $matches)) {
-                $data['marriage_date'] = trim($matches[1]);
-                $data['marriage_date_parsed'] = $this->parse_date($matches[1]);
+                $data['marrdate'] = trim($matches[1]); // Changed from marriage_date
+                $data['marrdatetr'] = $this->parse_date($matches[1]); // Changed from marriage_date_parsed
             } elseif (preg_match('/^2 PLAC (.+)/', $line, $matches)) {
-                $data['marriage_place'] = trim($matches[1]);
+                $data['marrplace'] = trim($matches[1]); // Changed from marriage_place
             }
         }
     }
@@ -351,12 +350,11 @@ class GedcomServiceSimplified
 
             if (preg_match('/^1 /', $line))
                 break;
-
             if (preg_match('/^2 DATE (.+)/', $line, $matches)) {
-                $data['divorce_date'] = trim($matches[1]);
-                $data['divorce_date_parsed'] = $this->parse_date($matches[1]);
+                $data['divdate'] = trim($matches[1]); // Changed from divorce_date
+                $data['divdatetr'] = $this->parse_date($matches[1]); // Changed from divorce_date_parsed
             } elseif (preg_match('/^2 PLAC (.+)/', $line, $matches)) {
-                $data['divorce_place'] = trim($matches[1]);
+                $data['divplace'] = trim($matches[1]); // Changed from divorce_place
             }
         }
     }
@@ -368,14 +366,13 @@ class GedcomServiceSimplified
     {
         $data = [
             'gedcom' => $this->gedcom_id,
-            'source_id' => $record['id'],
+            'sourceID' => $record['id'], // Use TNG column name
             'title' => '',
             'author' => '',
             'publisher' => '',
-            'publication_info' => '',
-            'call_number' => '',
-            'repository_id' => '',
-            'notes' => ''
+            'callnum' => '', // TNG column name
+            'repoID' => '', // TNG column name instead of repository_id
+            'comments' => '' // TNG uses comments instead of note
         ];
 
         foreach ($record['data'] as $line) {
@@ -386,7 +383,7 @@ class GedcomServiceSimplified
             } elseif (preg_match('/^1 PUBL (.+)/', $line, $matches)) {
                 $data['publisher'] = trim($matches[1]);
             } elseif (preg_match('/^1 REPO (@.+@)/', $line, $matches)) {
-                $data['repository_id'] = $matches[1];
+                $data['repoID'] = $matches[1]; // Use TNG column name
             }
         }
 
@@ -407,27 +404,19 @@ class GedcomServiceSimplified
     {
         $data = [
             'gedcom' => $this->gedcom_id,
-            'repo_id' => $record['id'],
-            'name' => '',
-            'address' => '',
-            'phone' => '',
-            'email' => '',
-            'website' => '',
-            'notes' => ''
+            'repoID' => $record['id'], // Use TNG column name
+            'reponame' => '', // Use TNG column name
+            'addressID' => 0, // TNG uses separate address table
+            'changedate' => current_time('mysql'),
+            'changedby' => 'GEDCOM Import'
         ];
 
         foreach ($record['data'] as $line) {
             if (preg_match('/^1 NAME (.+)/', $line, $matches)) {
-                $data['name'] = trim($matches[1]);
-            } elseif (preg_match('/^1 ADDR (.+)/', $line, $matches)) {
-                $data['address'] = trim($matches[1]);
-            } elseif (preg_match('/^1 PHON (.+)/', $line, $matches)) {
-                $data['phone'] = trim($matches[1]);
-            } elseif (preg_match('/^1 EMAIL (.+)/', $line, $matches)) {
-                $data['email'] = trim($matches[1]);
-            } elseif (preg_match('/^1 WWW (.+)/', $line, $matches)) {
-                $data['website'] = trim($matches[1]);
+                $data['reponame'] = trim($matches[1]); // Use TNG column name
             }
+            // Skip address details - TNG uses separate address table
+            // We'll just import the repository name for now
         }
 
         $result = $this->wpdb->replace(
@@ -481,21 +470,22 @@ class GedcomServiceSimplified
     {
         $data = [
             'gedcom' => $this->gedcom_id,
-            'media_id' => $record['id'],
-            'file_path' => '',
-            'title' => '',
+            'mediakey' => $record['id'], // TNG uses mediakey instead of media_id
+            'path' => '', // TNG uses path instead of mediafile
             'description' => '',
-            'media_type' => '',
-            'notes' => ''
+            'mediatypeID' => '', // TNG column name
+            'notes' => '',
+            'changedate' => current_time('mysql'),
+            'changedby' => 'GEDCOM Import'
         ];
 
         foreach ($record['data'] as $line) {
             if (preg_match('/^1 FILE (.+)/', $line, $matches)) {
-                $data['file_path'] = trim($matches[1]);
+                $data['path'] = trim($matches[1]); // TNG uses path
             } elseif (preg_match('/^1 TITL (.+)/', $line, $matches)) {
-                $data['title'] = trim($matches[1]);
+                $data['description'] = trim($matches[1]); // Use description for title
             } elseif (preg_match('/^2 FORM (.+)/', $line, $matches)) {
-                $data['media_type'] = trim($matches[1]);
+                $data['mediatypeID'] = trim($matches[1]); // TNG column name
             }
         }
 
@@ -542,9 +532,8 @@ class GedcomServiceSimplified
         if (empty($date_string)) {
             return null;
         }
-
         try {
-            return $this->date_converter->parseDate($date_string);
+            return $this->date_converter->parseDateValue($date_string);
         } catch (Exception $e) {
             return null;
         }

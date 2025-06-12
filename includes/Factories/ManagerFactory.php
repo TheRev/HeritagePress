@@ -96,7 +96,7 @@ class ManagerFactory
         $manager_mapping = [
             'heritagepress-trees' => 'TreesManager',
             'heritagepress-individuals' => 'IndividualsManager',
-            'heritagepress-importexport' => 'ImportExportManager',
+            'heritagepress-import-export' => 'ImportExportManager',
             'heritagepress-tools' => 'TableManager'
         ];
 

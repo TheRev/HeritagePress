@@ -9,60 +9,26 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Get logs from the database
-$logs = get_option('heritagepress_importexport_logs', array());
+// Initialize LogsHandler for proper filtering
+require_once HERITAGEPRESS_PLUGIN_DIR . 'includes/Admin/ImportExport/LogsHandler.php';
+$logs_handler = new \HeritagePress\Admin\ImportExport\LogsHandler();
 
-// Default to empty array if no logs found
-if (!is_array($logs)) {
-    $logs = array();
+// Get filter parameters from URL
+$filters = array();
+if (isset($_GET['log_action']) && !empty($_GET['log_action'])) {
+    $filters['type'] = sanitize_text_field($_GET['log_action']);
 }
+if (isset($_GET['log_status']) && !empty($_GET['log_status'])) {
+    $filters['status'] = sanitize_text_field($_GET['log_status']);
+}
+
+// Get filtered logs using LogsHandler
+$logs = $logs_handler->get_logs($filters);
 
 // Reverse array to show newest logs first
 $logs = array_reverse($logs);
 
-// Add some demo data if no logs exist yet
-if (empty($logs)) {
-    // Demo logs for development/preview
-    $logs = array(
-        array(
-            'timestamp' => strtotime('-2 days'),
-            'action' => 'import',
-            'message' => 'GEDCOM import completed: smith_family.ged',
-            'details' => array(
-                'tree_id' => 1,
-                'tree_name' => 'Smith Family Tree',
-                'filename' => 'smith_family.ged',
-                'status' => 'success',
-                'records' => 462,
-                'individuals' => 250,
-                'duration' => 65,
-            ),
-            'user_id' => get_current_user_id(),
-        ),
-        array(
-            'timestamp' => strtotime('-4 days'),
-            'action' => 'export',
-            'message' => 'GEDCOM export completed: smith_family_export.ged',
-            'details' => array(
-                'tree_id' => 1,
-                'tree_name' => 'Smith Family Tree',
-                'filename' => 'smith_family_export.ged',
-                'status' => 'success',
-                'records' => 462,
-                'individuals' => 250,
-                'duration' => 12,
-            ),
-            'user_id' => get_current_user_id(),
-        ),
-        array(
-            'timestamp' => strtotime('-7 days'),
-            'action' => 'settings_update',
-            'message' => 'Import/Export settings updated by user ID ' . get_current_user_id(),
-            'details' => array(),
-            'user_id' => get_current_user_id(),
-        ),
-    );
-}
+// No dummy data - show real logs only
 ?>
 
 <div class="hp-logs-container">
@@ -70,24 +36,26 @@ if (empty($logs)) {
 
     <div class="hp-log-filters">
         <form id="hp-log-filter-form" method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>">
-            <input type="hidden" name="page" value="heritagepress-importexport">
-            <input type="hidden" name="tab" value="logs">
-
-            <select name="log_action">
+            <input type="hidden" name="page" value="heritagepress-import-export">
+            <input type="hidden" name="tab" value="logs"> <select name="log_action">
                 <option value=""><?php esc_html_e('All actions', 'heritagepress'); ?></option>
-                <option value="import"><?php esc_html_e('Import', 'heritagepress'); ?></option>
-                <option value="export"><?php esc_html_e('Export', 'heritagepress'); ?></option>
-                <option value="settings_update"><?php esc_html_e('Settings', 'heritagepress'); ?></option>
+                <option value="import" <?php selected(isset($_GET['log_action']) ? $_GET['log_action'] : '', 'import'); ?>><?php esc_html_e('Import', 'heritagepress'); ?></option>
+                <option value="export" <?php selected(isset($_GET['log_action']) ? $_GET['log_action'] : '', 'export'); ?>><?php esc_html_e('Export', 'heritagepress'); ?></option>
+                <option value="settings" <?php selected(isset($_GET['log_action']) ? $_GET['log_action'] : '', 'settings'); ?>><?php esc_html_e('Settings', 'heritagepress'); ?></option>
             </select>
 
             <select name="log_status">
                 <option value=""><?php esc_html_e('All statuses', 'heritagepress'); ?></option>
-                <option value="success"><?php esc_html_e('Success', 'heritagepress'); ?></option>
-                <option value="error"><?php esc_html_e('Error', 'heritagepress'); ?></option>
-            </select>
-
-            <input type="submit" class="button" value="<?php esc_attr_e('Filter', 'heritagepress'); ?>">
+                <option value="success" <?php selected(isset($_GET['log_status']) ? $_GET['log_status'] : '', 'success'); ?>><?php esc_html_e('Success', 'heritagepress'); ?></option>
+                <option value="error" <?php selected(isset($_GET['log_status']) ? $_GET['log_status'] : '', 'error'); ?>><?php esc_html_e('Error', 'heritagepress'); ?></option>
+            </select> <input type="submit" class="button" value="<?php esc_attr_e('Filter', 'heritagepress'); ?>">
+            <a href="<?php echo esc_url(admin_url('admin.php?page=heritagepress-import-export&tab=logs')); ?>"
+                class="button"><?php esc_attr_e('Clear Filters', 'heritagepress'); ?></a>
         </form>
+
+        <p class="hp-log-count">
+            <?php printf(esc_html__('Showing %d logs (limited to 100 most recent)', 'heritagepress'), count($logs)); ?>
+        </p>
     </div>
 
     <table class="widefat hp-logs-table">
@@ -188,6 +156,14 @@ if (empty($logs)) {
         display: flex;
         gap: 10px;
         align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .hp-log-count {
+        font-style: italic;
+        color: #666;
+        margin: 0;
+        padding: 5px 0;
     }
 
     .hp-logs-table {

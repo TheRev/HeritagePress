@@ -55,16 +55,16 @@ class BaseManager
     }    /**
          * Get GedcomService instance (lazy loading)
          * 
-         * @return object GedcomServiceSimplified instance
+         * @return object GedcomServiceTNG instance
          */
     public function get_gedcom_service()
     {
         if ($this->gedcom_service === null) {
-            // Use the new simplified GEDCOM service for direct database mapping
-            if (!class_exists('\HeritagePress\Services\GedcomServiceSimplified')) {
-                require_once dirname(dirname(dirname(__FILE__))) . '/Services/GedcomServiceSimplified.php';
+            // Use the TNG-compatible GEDCOM service for exact TNG database schema compliance
+            if (!class_exists('\HeritagePress\Services\GedcomServiceTNG')) {
+                require_once dirname(dirname(dirname(__FILE__))) . '/Services/GedcomServiceTNG.php';
             }
-            $this->gedcom_service = new \HeritagePress\Services\GedcomServiceSimplified();
+            $this->gedcom_service = new \HeritagePress\Services\GedcomServiceTNG();
         }
         return $this->gedcom_service;
     }

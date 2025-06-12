@@ -518,8 +518,7 @@ $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : '';
                 </div>
                 <div class="hp-tool-content">
                     <h4><?php _e('Import Data', 'heritagepress'); ?></h4>
-                    <p><?php _e('Import GEDCOM data into this tree.', 'heritagepress'); ?></p>
-                    <a href="<?php echo admin_url('admin.php?page=heritagepress-importexport&action=import&tree=' . $tree->treeID); ?>" 
+                    <p><?php _e('Import GEDCOM data into this tree.', 'heritagepress'); ?></p>                    <a href="<?php echo admin_url('admin.php?page=heritagepress-import-export&action=import&tree=' . $tree->treeID); ?>" 
                        class="button"><?php _e('Import GEDCOM', 'heritagepress'); ?></a>
                 </div>
             </div>
@@ -530,8 +529,7 @@ $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : '';
                 </div>
                 <div class="hp-tool-content">
                     <h4><?php _e('Export Data', 'heritagepress'); ?></h4>
-                    <p><?php _e('Export this tree as a GEDCOM file.', 'heritagepress'); ?></p>
-                    <a href="<?php echo admin_url('admin.php?page=heritagepress-importexport&action=export&tree=' . $tree->treeID); ?>" 
+                    <p><?php _e('Export this tree as a GEDCOM file.', 'heritagepress'); ?></p>                    <a href="<?php echo admin_url('admin.php?page=heritagepress-import-export&action=export&tree=' . $tree->treeID); ?>" 
                        class="button"><?php _e('Export GEDCOM', 'heritagepress'); ?></a>
                 </div>
             </div>

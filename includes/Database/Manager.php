@@ -158,24 +158,104 @@ class Manager
             error_log('HeritagePress: Failed to initialize calendar systems: ' . $e->getMessage());
         }
 
+        // Fix missing columns required for GEDCOM import
+        error_log('HeritagePress: Checking and fixing missing columns...');
+        $column_results = $this->fix_missing_columns();
+        foreach ($column_results as $table => $columns) {
+            if (isset($columns['error'])) {
+                error_log("HeritagePress: Column fix error for $table: " . $columns['error']);
+            } else {
+                foreach ($columns as $column => $status) {
+                    error_log("HeritagePress: Column $table.$column: $status");
+                }
+            }
+        }
+
         // Store the schema version
         WPHelper::updateOption('heritagepress_db_version', $this->version);
-    }
-
-    /**
-     * Check if database tables need to be updated
-     *
-     * @return bool True if update is needed
-     */
+    }    /**
+         * Check if database tables need to be updated
+         *
+         * @return bool True if update is needed
+         */
     public function needs_update()
     {
         $current_version = WPHelper::getOption('heritagepress_db_version', '0');
         return version_compare($current_version, $this->version, '<');
-    }    /**
-         * Get list of required tables
-         *
-         * @return array List of table names without prefix
-         */
+    }
+
+    /**
+     * Fix missing columns that are required for GEDCOM import
+     * 
+     * @return array Results of column additions
+     */
+    public function fix_missing_columns()
+    {
+        $results = [];
+
+        // Define the missing columns that need to be added
+        $column_fixes = [
+            'hp_people' => [
+                'person_id' => 'VARCHAR(50) NOT NULL AFTER gedcom'
+            ],
+            'hp_families' => [
+                'family_id' => 'VARCHAR(50) NOT NULL AFTER gedcom'
+            ],
+            'hp_sources' => [
+                'source_id' => 'VARCHAR(50) NOT NULL AFTER gedcom'
+            ],
+            'hp_repositories' => [
+                'name' => 'VARCHAR(255) NOT NULL AFTER repo_id'
+            ],
+            'hp_media' => [
+                'media_id' => 'VARCHAR(50) NOT NULL AFTER gedcom'
+            ]
+        ];
+
+        foreach ($column_fixes as $table_name => $columns) {
+            $full_table_name = $this->wpdb->prefix . $table_name;
+            $results[$table_name] = [];
+
+            // Check if table exists
+            $table_exists = $this->wpdb->get_var("SHOW TABLES LIKE '$full_table_name'");
+            if (!$table_exists) {
+                $results[$table_name]['error'] = "Table $full_table_name does not exist";
+                error_log("HeritagePress: Table $full_table_name does not exist");
+                continue;
+            }
+
+            foreach ($columns as $column_name => $column_definition) {
+                // Check if column already exists
+                $column_exists = $this->wpdb->get_var("SHOW COLUMNS FROM $full_table_name LIKE '$column_name'");
+
+                if ($column_exists) {
+                    $results[$table_name][$column_name] = 'exists';
+                    error_log("HeritagePress: Column $column_name already exists in $full_table_name");
+                } else {
+                    // Add the missing column
+                    $sql = "ALTER TABLE $full_table_name ADD COLUMN $column_name $column_definition";
+                    error_log("HeritagePress: Executing: $sql");
+
+                    $result = $this->wpdb->query($sql);
+                    if ($result !== false) {
+                        $results[$table_name][$column_name] = 'added';
+                        error_log("HeritagePress: Successfully added column $column_name to $full_table_name");
+                    } else {
+                        $results[$table_name][$column_name] = 'failed: ' . $this->wpdb->last_error;
+                        error_log("HeritagePress: Failed to add column $column_name to $full_table_name: " . $this->wpdb->last_error);
+                    }
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get list of required tables
+     *
+     * @return array List of table names without prefix
+     */
     public function get_required_tables()
     {
         return [
@@ -222,16 +302,26 @@ class Manager
             'hp_templates',
             'hp_users',
         ];
-    }
-
-    /**
-     * Get the WordPress database object
-     *
-     * @return object WordPress database object
-     */
+    }    /**
+         * Get the WordPress database object
+         *
+         * @return object WordPress database object
+         */
     public function get_wpdb()
     {
         global $wpdb;
         return $wpdb;
+    }
+
+    /**
+     * Public method to manually trigger column fixes
+     * Useful for troubleshooting import issues
+     * 
+     * @return array Results of column additions
+     */
+    public function install_missing_columns()
+    {
+        error_log('HeritagePress: Manual column fix triggered');
+        return $this->fix_missing_columns();
     }
 }
