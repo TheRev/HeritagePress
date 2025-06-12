@@ -30,6 +30,8 @@ use HeritagePress\Admin\ImportExport\ExportHandler;
 use HeritagePress\Admin\ImportExport\DateHandler;
 use HeritagePress\Admin\ImportExport\SettingsHandler;
 use HeritagePress\Admin\ImportExport\LogsHandler;
+use HeritagePress\Core\ServiceContainer;
+use HeritagePress\Core\ErrorHandler;
 
 if (!defined('HERITAGEPRESS_VERSION')) {
     define('HERITAGEPRESS_VERSION', '1.0.0');
@@ -59,7 +61,9 @@ class Admin
     private static $instance_created = false;
 
     /** @var PageRenderer */
-    private $page_renderer;    /** @var AjaxHandler */
+    private $page_renderer;
+
+    /** @var AjaxHandler */
     private $ajax_handler;
 
     /** @var ImportHandler */
@@ -72,11 +76,19 @@ class Admin
     private $date_handler;
 
     /** @var SettingsHandler */
-    private $settings_handler;    /** @var LogsHandler */
+    private $settings_handler;
+
+    /** @var LogsHandler */
     private $logs_handler;
 
     /** @var TableManager */
-    private $table_manager;/**
+    private $table_manager;
+
+    /** @var ServiceContainer */
+    private $container;
+
+    /** @var ErrorHandler */
+    private $error_handler;/**
       * Initialize the admin interface
       *
       * @param string $plugin_path Main plugin directory path
@@ -110,25 +122,67 @@ class Admin
         define('HERITAGEPRESS_ADMIN_INSTANCE_CREATED', true);
         self::$instance = new self($plugin_path, $version);
         return self::$instance;
+    }    /**
+         * Constructor is private to enforce singleton pattern
+         * 
+         * @param string $plugin_path Main plugin directory path
+         * @param string $version Plugin version
+         */
+    private function __construct($plugin_path, $version = '1.0.0')
+    {
+        // Initialize service container first
+        $this->container = new ServiceContainer();
+        $this->error_handler = new ErrorHandler();
+
+        // Setup core services
+        $this->setup_core_services($plugin_path, $version);
+
+        // Initialize services using dependency injection
+        $this->initialize_services($plugin_path, $version);
+
+        // Initialize components
+        $this->init();
     }
 
     /**
-     * Constructor is private to enforce singleton pattern
-     * 
-     * @param string $plugin_path Main plugin directory path
+     * Setup core services in the container
+     *
+     * @param string $plugin_path Plugin path
      * @param string $version Plugin version
      */
-    private function __construct($plugin_path, $version = '1.0.0')
+    private function setup_core_services($plugin_path, $version)
     {
-
         // Calculate plugin URL
         if (!defined('HERITAGEPRESS_PLUGIN_URL')) {
             define('HERITAGEPRESS_PLUGIN_URL', WPHelper::getPluginUrl($plugin_path . 'heritagepress.php'));
         }
-        $plugin_url = HERITAGEPRESS_PLUGIN_URL;
 
+        // Register core services
+        $this->container->register('db_manager', function ($container) use ($plugin_path, $version) {
+            return new SchemaManager($plugin_path, $version);
+        });
+
+        $this->container->register('plugin_url', function ($container) {
+            return HERITAGEPRESS_PLUGIN_URL;
+        }, false);
+
+        $this->container->register('error_handler', function ($container) {
+            return $this->error_handler;
+        });
+    }
+
+    /**
+     * Initialize services using dependency injection
+     *
+     * @param string $plugin_path Plugin path  
+     * @param string $version Plugin version
+     */
+    private function initialize_services($plugin_path, $version)
+    {
         // Initialize database manager and operations
-        $this->db_manager = new SchemaManager($plugin_path, $version);
+        $this->db_manager = $this->container->get('db_manager');
+        $plugin_url = $this->container->get('plugin_url');
+
         $db_ops = new class ($this->db_manager) {
             use DatabaseOperations;
             private $wpdb;
@@ -141,8 +195,8 @@ class Admin
         // Initialize form handler with database access
         $this->form_handler = new FormHandler($this->db_manager);
 
-        // Initialize other managers
-        $this->menu_manager = new MenuManager();
+        // Initialize managers with dependency injection
+        $this->menu_manager = new MenuManager($this->container);
         $this->asset_manager = new AssetManager($plugin_url);
 
         // Initialize page renderer with dependencies
@@ -150,8 +204,12 @@ class Admin
             $plugin_path,
             $db_ops,
             $this->form_handler
-        );        // Initialize AJAX handler with dependencies
-        $this->ajax_handler = new AjaxHandler($this->db_manager, $db_ops);        // Initialize ImportExport handlers to register AJAX actions
+        );
+
+        // Initialize AJAX handler with dependencies
+        $this->ajax_handler = new AjaxHandler($this->db_manager, $db_ops);
+
+        // Initialize ImportExport handlers to register AJAX actions
         $this->import_handler = new ImportHandler();
         $this->export_handler = new ExportHandler();
         $this->date_handler = new DateHandler();
@@ -160,12 +218,9 @@ class Admin
 
         // Initialize TableManager to register AJAX actions
         $this->table_manager = new TableManager();
-
-        // Initialize components
-        $this->init();
-    }    /**
-         * Initialize admin components
-         */
+    }/**
+     * Initialize admin components
+     */
     private function init()
     {
 

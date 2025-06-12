@@ -26,6 +26,25 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
 <div class="hp-import-container">
     <h3><?php esc_html_e('Step 3: Importing GEDCOM', 'heritagepress'); ?></h3>
 
+    <div class="hp-import-destination">
+        <h4><?php esc_html_e('Import Destination', 'heritagepress'); ?></h4>
+        <div class="destination-info">
+            <strong>
+                <?php if ($tree_id === 'new'): ?>
+                    <?php printf(esc_html__('Creating new tree: %s', 'heritagepress'), esc_html($new_tree_name)); ?>
+                <?php else: ?>
+                    <?php
+                    if (!empty($selected_tree_name)) {
+                        printf(esc_html__('Importing into: %s', 'heritagepress'), esc_html($selected_tree_name));
+                    } else {
+                        printf(esc_html__('Importing into tree ID: %s', 'heritagepress'), esc_html($tree_id));
+                    }
+                    ?>
+                <?php endif; ?>
+            </strong>
+        </div>
+    </div>
+
     <div class="hp-import-progress">
         <div class="hp-progress-status">
             <span id="hp-current-operation"><?php esc_html_e('Initializing import...', 'heritagepress'); ?></span>
@@ -212,17 +231,31 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
 
             $('#hp-current-operation').text('<?php esc_html_e('Import Error', 'heritagepress'); ?>');
             $('#hp-current-detail').text(message);
-            $('#hp-current-detail').addClass('hp-error-message');
-
-            // Add retry button and go to results page to show error details
+            $('#hp-current-detail').addClass('hp-error-message');            // Add retry button and go to results page to show error details
             var resultsUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4&error=1')); ?>';
             if (fileKey && fileKey.length > 0) {
                 resultsUrl += '&file=' + encodeURIComponent(fileKey);
             }
-
-            var backUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=2')); ?>';
+            if (treeId && treeId.length > 0) {
+                resultsUrl += '&tree_id=' + encodeURIComponent(treeId);
+            }
+            if (newTreeName && newTreeName.length > 0) {
+                resultsUrl += '&new_tree_name=' + encodeURIComponent(newTreeName);
+            }
+            if (importOption && importOption.length > 0) {
+                resultsUrl += '&import_option=' + encodeURIComponent(importOption);
+            } var backUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=2')); ?>';
             if (fileKey && fileKey.length > 0) {
                 backUrl += '&file=' + encodeURIComponent(fileKey);
+            }
+            if (treeId && treeId.length > 0) {
+                backUrl += '&tree_id=' + encodeURIComponent(treeId);
+            }
+            if (newTreeName && newTreeName.length > 0) {
+                backUrl += '&new_tree_name=' + encodeURIComponent(newTreeName);
+            }
+            if (importOption && importOption.length > 0) {
+                backUrl += '&import_option=' + encodeURIComponent(importOption);
             }
 
             $('.hp-import-progress').append(
@@ -243,11 +276,20 @@ $privacy_notes = isset($_POST['privacy_notes']) ? (bool) $_POST['privacy_notes']
             $('#hp-retry-import').on('click', function () {
                 location.reload();
             });
-        }// Redirect to the results page
+        }        // Redirect to the results page
         function redirectToResults() {
             var redirectUrl = '<?php echo esc_url(admin_url('admin.php?page=heritagepress-importexport&tab=import&step=4')); ?>';
             if (fileKey && fileKey.length > 0) {
                 redirectUrl += '&file=' + encodeURIComponent(fileKey);
+            }
+            if (treeId && treeId.length > 0) {
+                redirectUrl += '&tree_id=' + encodeURIComponent(treeId);
+            }
+            if (newTreeName && newTreeName.length > 0) {
+                redirectUrl += '&new_tree_name=' + encodeURIComponent(newTreeName);
+            }
+            if (importOption && importOption.length > 0) {
+                redirectUrl += '&import_option=' + encodeURIComponent(importOption);
             }
             window.location.href = redirectUrl;
         }

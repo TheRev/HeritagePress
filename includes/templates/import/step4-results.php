@@ -12,14 +12,37 @@ if (!defined('ABSPATH')) {
 // Get file key from URL
 $file_key = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
 
+// Get import options from URL/POST data for proper tree information
+$tree_id = isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : (isset($_GET['tree_id']) ? sanitize_text_field($_GET['tree_id']) : '');
+$new_tree_name = isset($_POST['new_tree_name']) ? sanitize_text_field($_POST['new_tree_name']) : (isset($_GET['new_tree_name']) ? sanitize_text_field($_GET['new_tree_name']) : '');
+$import_option = isset($_POST['import_option']) ? sanitize_text_field($_POST['import_option']) : (isset($_GET['import_option']) ? sanitize_text_field($_GET['import_option']) : 'replace');
+
+// Determine the actual tree name based on the import settings
+$actual_tree_name = '';
+$actual_tree_id = '';
+
+if ($tree_id === 'new' && !empty($new_tree_name)) {
+    $actual_tree_name = $new_tree_name;
+    $actual_tree_id = 'new'; // Will be replaced with actual ID after import
+} else {
+    // Get tree name from database if importing to existing tree
+    if (!empty($selected_tree_name)) {
+        $actual_tree_name = $selected_tree_name;
+        $actual_tree_id = $tree_id;
+    } else {
+        $actual_tree_name = 'Tree ID: ' . $tree_id;
+        $actual_tree_id = $tree_id;
+    }
+}
+
 // Check if this is an error case
 $has_error = isset($_GET['error']) && $_GET['error'] == '1';
 
 if ($has_error) {
     // Show error state
     $import_results = array(
-        'tree_id' => null,
-        'tree_name' => 'Import Failed',
+        'tree_id' => $actual_tree_id,
+        'tree_name' => $actual_tree_name,
         'duration' => 0,
         'records_processed' => 0,
         'individuals' => 0,
@@ -39,8 +62,8 @@ if ($has_error) {
 } else {
     // For demo purposes - this would be real data in production
     $import_results = array(
-        'tree_id' => 1,
-        'tree_name' => 'Smith Family Tree',
+        'tree_id' => $actual_tree_id,
+        'tree_name' => $actual_tree_name,
         'duration' => 65, // seconds
         'records_processed' => 462,
         'individuals' => 250,

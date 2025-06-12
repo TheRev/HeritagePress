@@ -12,29 +12,30 @@ trait DatabaseOperations
         $query_args = array();
 
         if (!empty($search_query)) {
-            $where_clauses[] = '(name LIKE %s OR description LIKE %s)';
+            $where_clauses[] = '(title LIKE %s OR description LIKE %s)';
             $query_args[] = '%' . $this->wpdb->esc_like($search_query) . '%';
             $query_args[] = '%' . $this->wpdb->esc_like($search_query) . '%';
         }
 
         if (!empty($privacy_filter)) {
             if ($privacy_filter === 'public') {
-                $where_clauses[] = 'is_public = 1';
+                $where_clauses[] = 'privacy_level = 0';
             } elseif ($privacy_filter === 'private') {
-                $where_clauses[] = 'is_public = 0';
+                $where_clauses[] = 'privacy_level > 0';
             }
         }
-
         $where_clause = implode(' AND ', $where_clauses);
-        $order_clause = 'ORDER BY name ASC';
+        $order_clause = 'ORDER BY `title` ASC';
 
-        $query = "SELECT * FROM {$this->wpdb->prefix}hp_trees WHERE {$where_clause} {$order_clause}";
+        $query = "SELECT * FROM `{$this->wpdb->prefix}hp_trees` WHERE {$where_clause} {$order_clause}";
 
         if (!empty($query_args)) {
-            return $this->wpdb->get_results($this->wpdb->prepare($query, $query_args));
+            $result = $this->wpdb->get_results($this->wpdb->prepare($query, $query_args));
+        } else {
+            $result = $this->wpdb->get_results($query);
         }
 
-        return $this->wpdb->get_results($query);
+        return $result;
     }
     public function get_event_types()
     {

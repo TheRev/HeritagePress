@@ -225,6 +225,55 @@ $top_places = !empty($validation_result['places']) ? array_keys($validation_resu
         </div>
     </div>
 
+    <div class="heritagepress-card">
+        <h2><?php echo esc_html__('Import Destination', 'heritagepress'); ?></h2>
+        <div class="import-destination-info">
+            <?php if ($tree_id === 'new'): ?>
+                <div class="destination-item">
+                    <span class="destination-label"><?php echo esc_html__('Destination:', 'heritagepress'); ?></span>
+                    <span class="destination-value"><?php echo esc_html__('New Tree', 'heritagepress'); ?></span>
+                </div>
+                <div class="destination-item">
+                    <span class="destination-label"><?php echo esc_html__('Tree Name:', 'heritagepress'); ?></span>
+                    <span class="destination-value"><?php echo esc_html($new_tree_name); ?></span>
+                </div>
+            <?php else: ?>
+                <div class="destination-item">
+                    <span class="destination-label"><?php echo esc_html__('Destination:', 'heritagepress'); ?></span>
+                    <span class="destination-value">
+                        <?php
+                        if (!empty($selected_tree_name)) {
+                            echo esc_html($selected_tree_name);
+                        } else {
+                            echo esc_html__('Existing Tree (ID: ', 'heritagepress') . esc_html($tree_id) . ')';
+                        }
+                        ?>
+                    </span>
+                </div>
+            <?php endif; ?>
+            <div class="destination-item">
+                <span class="destination-label"><?php echo esc_html__('Import Method:', 'heritagepress'); ?></span>
+                <span class="destination-value">
+                    <?php
+                    switch ($import_option) {
+                        case 'replace':
+                            echo esc_html__('Replace existing data', 'heritagepress');
+                            break;
+                        case 'merge':
+                            echo esc_html__('Merge with existing data', 'heritagepress');
+                            break;
+                        case 'append':
+                            echo esc_html__('Append to existing data', 'heritagepress');
+                            break;
+                        default:
+                            echo esc_html($import_option);
+                    }
+                    ?>
+                </span>
+            </div>
+        </div>
+    </div>
+
     <?php if ($validation_result['has_errors'] || $validation_result['has_warnings']): ?>
         <div class="heritagepress-card">
             <h2><?php echo esc_html__('Validation Issues', 'heritagepress'); ?></h2>
@@ -521,5 +570,33 @@ $top_places = !empty($validation_result['places']) ? array_keys($validation_resu
         margin-top: 30px;
         padding-top: 20px;
         border-top: 1px solid #ddd;
+    }
+
+    .import-destination-info {
+        padding: 15px;
+        background: #f0f8ff;
+        border-radius: 5px;
+        border: 1px solid #007cba;
+    }
+
+    .destination-item {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .destination-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .destination-label {
+        font-weight: 600;
+        min-width: 140px;
+        color: #555;
+    }
+
+    .destination-value {
+        font-weight: 500;
+        color: #333;
     }
 </style>

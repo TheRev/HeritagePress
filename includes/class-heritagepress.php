@@ -46,14 +46,11 @@ class HeritagePress
         // Then load required files
         self::load_dependencies();
 
-        // Initialize components directly
-        self::initialize_components();
-
-        // Register hooks (this will now skip the init hook registration since components are already initialized)
+        // Register hooks but don't initialize components immediately
         self::register_hooks();
-    }    /**
-         * Define plugin constants
-         */
+    }/**
+     * Define plugin constants
+     */
     private static function define_constants()
     {
         // Define plugin version
@@ -105,16 +102,35 @@ class HeritagePress
         \register_activation_hook(HERITAGEPRESS_PLUGIN_FILE, [__CLASS__, 'activate']);
         \register_deactivation_hook(HERITAGEPRESS_PLUGIN_FILE, [__CLASS__, 'deactivate']);
 
-        // Only add the init hook if we haven't initialized components directly
-        if (!self::$components_initialized) {
-            // Init hook - lower priority ensures it runs after direct initialization if that happens
-            WPHelper::addAction('init', [__CLASS__, 'initialize_components'], 5);
-        }
+        // Load text domain on init hook (proper timing for WordPress)
+        WPHelper::addAction('init', [__CLASS__, 'load_textdomain']);
+
+        // Initialize components on init hook to ensure proper timing
+        WPHelper::addAction('init', [__CLASS__, 'initialize_components'], 5);
+
+        // Suppress buffer compression warnings (server configuration issue)
+        WPHelper::addAction('init', [__CLASS__, 'suppress_buffer_warnings'], 1);
     }
 
     /**
-     * Initialize plugin components
+     * Suppress buffer compression warnings
+     * These are server-level configuration warnings, not plugin errors
      */
+    public static function suppress_buffer_warnings()
+    {
+        // Add custom error handler for buffer compression warnings
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+            // Suppress zlib output compression warnings
+            if (strpos($errstr, 'Failed to send buffer of zlib output compression') !== false) {
+                return true; // Suppress this specific warning
+            }
+
+            // Let other errors be handled normally
+            return false;
+        }, E_NOTICE | E_WARNING);
+    }    /**
+         * Initialize plugin components
+         */
     public static function initialize_components()
     {
         // Check if components have already been initialized
@@ -125,6 +141,11 @@ class HeritagePress
         // Set flag to prevent duplicate initialization - do this first before any other operations
         self::$components_initialized = true;
 
+        // Initialize AJAX handlers early for all contexts (admin and frontend AJAX requests)
+        if (WPHelper::isAdmin() || (defined('DOING_AJAX') && DOING_AJAX)) {
+            self::initialize_ajax_handlers();
+        }
+
         // Static variable to ensure we only get Admin instance once per request
         static $admin_initialized = false;
 
@@ -132,8 +153,28 @@ class HeritagePress
             $admin_initialized = true;
             $admin = HeritagePress\Admin\Admin::get_instance(HERITAGEPRESS_PLUGIN_DIR, HERITAGEPRESS_VERSION);
         }
+    }
 
-        // Load text domain
+    /**
+     * Initialize AJAX handlers early to ensure they're registered
+     */
+    private static function initialize_ajax_handlers()
+    {
+        // Import/Export AJAX handlers
+        if (class_exists('HeritagePress\Admin\ImportExport\ImportHandler')) {
+            $import_handler = new HeritagePress\Admin\ImportExport\ImportHandler();
+        }
+
+        if (class_exists('HeritagePress\Admin\ImportExport\ExportHandler')) {
+            $export_handler = new HeritagePress\Admin\ImportExport\ExportHandler();
+        }
+    }
+
+    /**
+     * Load plugin textdomain for translations
+     */
+    public static function load_textdomain()
+    {
         if (function_exists('load_plugin_textdomain')) {
             $lang_path = dirname(WPHelper::pluginBasename(HERITAGEPRESS_PLUGIN_FILE)) . '/languages';
             load_plugin_textdomain('heritagepress', false, $lang_path);

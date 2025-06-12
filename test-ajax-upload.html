@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AJAX Upload Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h2>Test AJAX Upload</h2>
+
+    <form id="test-upload-form" enctype="multipart/form-data">
+        <input type="file" name="gedcom_file" id="gedcom-file" accept=".ged,.gedcom">
+        <select name="tree_id">
+            <option value="new">Create New Tree</option>
+            <option value="1">Test Tree</option>
+        </select>
+        <input type="radio" name="import_option" value="replace" checked> Replace
+        <button type="submit">Upload and Validate</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        $(document).ready(function () {
+            $('#test-upload-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                formData.append('action', 'hp_upload_gedcom');
+                formData.append('hp_gedcom_nonce', '<?php echo wp_create_nonce("hp_gedcom_upload"); ?>');
+
+                console.log('Sending AJAX request...');
+
+                $.ajax({
+                    url: '/wordpress/wp-admin/admin-ajax.php',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        console.log('Success:', response);
+                        $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('Error:', error);
+                        console.log('Response:', xhr.responseText);
+                        $('#result').html('<p style="color: red;">Error: ' + error + '<br>Response: ' + xhr.responseText + '</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
+
+<?php
+// Include WordPress to get access to wp_create_nonce
+require_once('../../../wp-config.php');
+?>

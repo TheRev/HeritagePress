@@ -15,6 +15,7 @@ use HeritagePress\Admin\ImportExport\ExportHandler;
 use HeritagePress\Admin\ImportExport\DateHandler;
 use HeritagePress\Admin\ImportExport\SettingsHandler;
 use HeritagePress\Admin\ImportExport\LogsHandler;
+use HeritagePress\Admin\DatabaseOperations;
 
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
@@ -28,6 +29,9 @@ if (!defined('ABSPATH')) {
  */
 class ImportExportManager
 {
+    // Use DatabaseOperations trait to access tree data
+    use DatabaseOperations;
+
     /**
      * @var ImportHandler
      */
@@ -54,6 +58,11 @@ class ImportExportManager
     private $logs_handler;
 
     /**
+     * @var \wpdb WordPress database object
+     */
+    private $wpdb;
+
+    /**
      * Constructor
      * 
      * @param object $plugin Optional plugin instance
@@ -66,14 +75,19 @@ class ImportExportManager
         $this->date_handler = new DateHandler();
         $this->settings_handler = new SettingsHandler();
         $this->logs_handler = new LogsHandler();
-    }
 
-    /**
-     * Render the main import/export page
-     */
+        // Initialize WordPress database object
+        global $wpdb;
+        $this->wpdb = $wpdb;
+    }    /**
+         * Render the main import/export page
+         */
     public function render_page()
-    {        // Get current tab from URL, default to 'import'
-        $current_tab = isset($_GET['tab']) ? $this->sanitize_tab_name($_GET['tab']) : 'import';// Tab definitions
+    {
+        // Get current tab from URL, default to 'import'
+        $current_tab = isset($_GET['tab']) ? $this->sanitize_tab_name($_GET['tab']) : 'import';
+
+        // Tab definitions
         $tabs = array(
             'import' => __('Import GEDCOM', 'heritagepress'),
             'export' => __('Export GEDCOM', 'heritagepress'),
@@ -85,7 +99,9 @@ class ImportExportManager
         ob_start();
 
         // Include header template with tabs
-        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/header.php';        // Include the current tab content
+        include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/header.php';
+
+        // Include the current tab content
         switch ($current_tab) {
             case 'import':
                 $this->render_import_tab();
@@ -105,22 +121,43 @@ class ImportExportManager
             default:
                 $this->render_import_tab();
                 break;
-        }
-
-        // Include footer
+        }        // Include footer
         include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/shared/footer.php';
 
         // Output the page content
         echo ob_get_clean();
-    }    /**
-         * Render the import tab
-         */
+    }
+
+    /**
+     * Render the import tab
+     */
     private function render_import_tab()
     {
         // Get the import step, default to 1
         $step = isset($_GET['step']) ? intval($_GET['step']) : 1;
 
-        // Use the import.php template which will include the correct step
+        // Get available trees for import selection
+        $trees = $this->get_trees();
+
+        // Get additional data that might be needed in various steps
+        $file_key = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
+        $tree_id = isset($_POST['tree_id']) ? sanitize_text_field($_POST['tree_id']) : (isset($_GET['tree_id']) ? sanitize_text_field($_GET['tree_id']) : '');
+        $new_tree_name = isset($_POST['new_tree_name']) ? sanitize_text_field($_POST['new_tree_name']) : (isset($_GET['new_tree_name']) ? sanitize_text_field($_GET['new_tree_name']) : '');
+        $import_option = isset($_POST['import_option']) ? sanitize_text_field($_POST['import_option']) : (isset($_GET['import_option']) ? sanitize_text_field($_GET['import_option']) : 'replace');
+        // If we have a tree_id, get the tree information
+        $selected_tree = null;
+        $selected_tree_name = '';
+        if (!empty($tree_id) && $tree_id !== 'new') {
+            foreach ($trees as $tree) {
+                if ($tree->id == $tree_id) {
+                    $selected_tree = $tree;
+                    $selected_tree_name = $tree->title;
+                    break;
+                }
+            }
+        } elseif ($tree_id === 'new' && !empty($new_tree_name)) {
+            $selected_tree_name = $new_tree_name;
+        }        // Use the import.php template which will include the correct step
         include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/import/import.php';
     }
 
@@ -129,6 +166,9 @@ class ImportExportManager
      */
     private function render_export_tab()
     {
+        // Get available trees for export selection
+        $trees = $this->get_trees();
+
         include HERITAGEPRESS_PLUGIN_DIR . 'includes/templates/export/export.php';
     }
 
@@ -259,5 +299,19 @@ class ImportExportManager
     public function validate_date($date_string)
     {
         return $this->date_handler->validate_date_string($date_string);
+    }
+
+    /**
+     * Get the list of family trees for import/export
+     * 
+     * @return array List of family trees
+     */
+    public function get_family_trees()
+    {
+        // Query the database for family trees
+        $query = "SELECT * FROM {$this->wpdb->prefix}family_trees";
+        $results = $this->wpdb->get_results($query);
+
+        return $results;
     }
 }

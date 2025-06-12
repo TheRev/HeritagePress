@@ -1,0 +1,465 @@
+/* HeritagePress Trees Administration CSS */
+/* Based on WordPress admin styling with genealogy-specific enhancements */
+
+/* General Trees Layout */
+.hp-trees-wrap {
+    margin: 20px 0;
+}
+
+.hp-trees-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.hp-trees-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    font-size: 23px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: #1d2327;
+}
+
+.hp-trees-title .dashicons {
+    margin-right: 10px;
+    color: #72aee6;
+}
+
+.hp-trees-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Navigation Tabs */
+.hp-trees-nav {
+    margin-bottom: 20px;
+}
+
+.hp-trees-nav .nav-tab-wrapper {
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.hp-trees-nav .nav-tab {
+    position: relative;
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: #f6f7f7;
+    color: #50575e;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.hp-trees-nav .nav-tab:hover {
+    background: #fff;
+    color: #3c434a;
+}
+
+.hp-trees-nav .nav-tab.nav-tab-active {
+    background: #fff;
+    border-color: #c3c4c7;
+    color: #1d2327;
+    margin-bottom: -1px;
+    padding-bottom: 9px;
+}
+
+/* Search Form */
+.hp-trees-search {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.hp-trees-search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.hp-trees-search input[type="search"] {
+    flex: 1;
+    max-width: 400px;
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* Trees Table */
+.hp-trees-table {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.hp-trees-table .wp-list-table {
+    border: none;
+}
+
+.hp-trees-table .wp-list-table th {
+    background: #f6f7f7;
+    border-bottom: 1px solid #c3c4c7;
+    font-weight: 600;
+    padding: 8px 10px;
+}
+
+.hp-trees-table .wp-list-table td {
+    border-bottom: 1px solid #f0f0f1;
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+.hp-trees-table .wp-list-table tr:hover {
+    background: #f6f7f7;
+}
+
+/* Tree Status Indicators */
+.hp-tree-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hp-tree-status.active {
+    background: #00a32a;
+    color: #fff;
+}
+
+.hp-tree-status.inactive {
+    background: #dcdcde;
+    color: #50575e;
+}
+
+.hp-tree-status.private {
+    background: #d63638;
+    color: #fff;
+}
+
+/* Tree Statistics */
+.hp-tree-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #646970;
+}
+
+.hp-tree-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hp-tree-stat .dashicons {
+    font-size: 16px;
+}
+
+/* Row Actions */
+.row-actions {
+    color: #c3c4c7;
+}
+
+.row-actions span {
+    display: inline;
+}
+
+.row-actions span a {
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.row-actions span a:hover {
+    color: #135e96;
+}
+
+.row-actions .delete a {
+    color: #d63638;
+}
+
+.row-actions .delete a:hover {
+    color: #d63638;
+}
+
+/* Form Styles */
+.hp-trees-form {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.hp-trees-form .form-table th {
+    width: 200px;
+    padding: 15px 10px 15px 0;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.hp-trees-form .form-table td {
+    padding: 15px 10px;
+}
+
+.hp-trees-form input[type="text"],
+.hp-trees-form input[type="email"],
+.hp-trees-form select,
+.hp-trees-form textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.hp-trees-form textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.hp-trees-form .description {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #646970;
+    font-style: italic;
+}
+
+/* Tree Statistics Panel */
+.hp-tree-stats-panel {
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-left: 20px;
+    min-width: 250px;
+}
+
+.hp-tree-stats-panel h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.hp-tree-stats-panel .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.hp-tree-stats-panel .stat-item:last-child {
+    border-bottom: none;
+}
+
+.hp-tree-stats-panel .stat-label {
+    font-size: 13px;
+    color: #646970;
+}
+
+.hp-tree-stats-panel .stat-value {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+/* Form Layout for Edit/Add */
+.hp-trees-form-layout {
+    display: flex;
+    gap: 20px;
+}
+
+.hp-trees-form-main {
+    flex: 1;
+}
+
+.hp-trees-form-sidebar {
+    width: 300px;
+}
+
+/* Privacy Level Indicators */
+.hp-privacy-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.hp-privacy-level.level-0 {
+    background: #00a32a;
+    color: #fff;
+}
+
+.hp-privacy-level.level-1 {
+    background: #ffb900;
+    color: #fff;
+}
+
+.hp-privacy-level.level-2 {
+    background: #d63638;
+    color: #fff;
+}
+
+.hp-privacy-level .dashicons {
+    font-size: 14px;
+}
+
+/* Messages */
+.hp-trees-message {
+    margin: 15px 0;
+    padding: 12px;
+    border-left: 4px solid;
+    border-radius: 0 3px 3px 0;
+    background: #fff;
+}
+
+.hp-trees-message.success {
+    border-left-color: #00a32a;
+    background: #f0f6fc;
+    color: #00a32a;
+}
+
+.hp-trees-message.error {
+    border-left-color: #d63638;
+    background: #fcf0f1;
+    color: #d63638;
+}
+
+.hp-trees-message.warning {
+    border-left-color: #ffb900;
+    background: #fcf9e8;
+    color: #996800;
+}
+
+/* Pagination */
+.hp-trees-pagination {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.hp-trees-pagination .page-numbers {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 2px;
+    border: 1px solid #c3c4c7;
+    border-radius: 3px;
+    background: #fff;
+    color: #2271b1;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.hp-trees-pagination .page-numbers:hover {
+    background: #f6f7f7;
+    border-color: #8c8f94;
+}
+
+.hp-trees-pagination .page-numbers.current {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 960px) {
+    .hp-trees-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .hp-trees-form-layout {
+        flex-direction: column;
+    }
+
+    .hp-trees-form-sidebar {
+        width: 100%;
+    }
+
+    .hp-tree-stats {
+        flex-wrap: wrap;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .hp-trees-search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hp-trees-search input[type="search"] {
+        max-width: none;
+    }
+}
+
+/* Loading States */
+.hp-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.hp-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: hp-spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes hp-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Validation Styles */
+.hp-field-error {
+    border-color: #d63638 !important;
+    box-shadow: 0 0 0 1px #d63638;
+}
+
+.hp-field-success {
+    border-color: #00a32a !important;
+    box-shadow: 0 0 0 1px #00a32a;
+}
+
+.hp-validation-message {
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.hp-validation-message.error {
+    color: #d63638;
+}
+
+.hp-validation-message.success {
+    color: #00a32a;
+}

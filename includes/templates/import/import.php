@@ -12,6 +12,12 @@ if (!defined('ABSPATH')) {
 // Get current step or default to 1
 $step = isset($_GET['step']) ? intval($_GET['step']) : 1;
 
+// Ensure $trees variable is available for all steps
+// This should be passed from ImportExportManager::render_import_tab()
+if (!isset($trees)) {
+    $trees = array(); // Fallback
+}
+
 // Handle different steps
 switch ($step) {
     case 2:

@@ -13,13 +13,6 @@ if (!defined('ABSPATH')) {
 // $trees variable is available from the include context
 if (!isset($trees)) {
     $trees = array(); // Fallback if no trees are available
-    // Try to get trees directly if they weren't passed
-    if (class_exists('HeritagePress\Admin\ImportExportManager')) {
-        global $wpdb;
-        if ($wpdb) {
-            $trees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}hp_trees ORDER BY title ASC");
-        }
-    }
 }
 
 ?>
@@ -56,25 +49,11 @@ if (!isset($trees)) {
                         <option value="new"><?php esc_html_e('Create New Tree', 'heritagepress'); ?></option>
                         <?php
                         // Display available trees from database
-                        // First try to use the $trees variable passed from ImportExportManager
                         if (isset($trees) && !empty($trees)) {
                             foreach ($trees as $tree) {
-                                if (isset($tree->id) && isset($tree->title)) {
-                                    echo '<option value="' . esc_attr($tree->id) . '">' . esc_html($tree->title) . '</option>';
-                                }
-                            }
-                        } else {
-                            // Fallback: Get trees directly from database
-                            global $wpdb;
-                            if ($wpdb) {
-                                $fallback_trees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}hp_trees ORDER BY title ASC");
-                                if (!empty($fallback_trees)) {
-                                    foreach ($fallback_trees as $tree) {
-                                        if (isset($tree->id) && isset($tree->title)) {
-                                            echo '<option value="' . esc_attr($tree->id) . '">' . esc_html($tree->title) . '</option>';
-                                        }
-                                    }
-                                }
+                                echo '<option value="' . esc_attr($tree->id) . '">';
+                                echo esc_html($tree->title);
+                                echo '</option>';
                             }
                         }
                         ?>
@@ -91,10 +70,8 @@ if (!isset($trees)) {
                 <th scope="row">
                     <?php esc_html_e('Import Options', 'heritagepress'); ?>
                 </th>
-                <td>
-                    <fieldset>
-                        <legend class="screen-reader-text"><?php esc_html_e('Import Options', 'heritagepress'); ?>
-                        </legend>
+                <td>                    <fieldset>
+                        <legend class="screen-reader-text"><?php esc_html_e('Import Options', 'heritagepress'); ?></legend>
 
                         <label>
                             <input type="radio" name="import_option" value="replace" checked>

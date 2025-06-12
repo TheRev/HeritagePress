@@ -1,119 +1,269 @@
 <?php
+/**
+ * Menu Manager for HeritagePress
+ *
+ * Handles menu registration and management using dependency injection
+ * and configuration-driven approach.
+ *
+ * @package HeritagePress
+ * @subpackage Admin
+ * @since 1.0.0
+ */
+
 namespace HeritagePress\Admin;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-use HeritagePress\Database\WPHelper;
+use HeritagePress\Config\MenuConfig;
+use HeritagePress\Factories\ManagerFactory;
+use HeritagePress\Core\ServiceContainer;
+use HeritagePress\Core\ErrorHandler;
 
 /**
- * Handles menu registration and management for the HeritagePress plugin
+ * Menu Manager Class
+ *
+ * Manages WordPress admin menu registration with dependency injection.
  */
 class MenuManager
 {
     /**
-     * Add admin menu items
+     * Service container
+     *
+     * @var ServiceContainer
+     */
+    private $container;
+
+    /**
+     * Manager factory
+     *
+     * @var ManagerFactory
+     */
+    private $manager_factory;
+
+    /**
+     * Error handler
+     *
+     * @var ErrorHandler
+     */
+    private $error_handler;
+
+    /**
+     * Constructor
+     *
+     * @param ServiceContainer $container Service container instance
+     */
+    public function __construct(ServiceContainer $container = null)
+    {
+        $this->container = $container ?: new ServiceContainer();
+        $this->manager_factory = new ManagerFactory($this->container);
+        $this->error_handler = new ErrorHandler();
+
+        $this->init();
+    }
+
+    /**
+     * Initialize menu manager
+     */
+    private function init()
+    {
+        add_action('admin_menu', [$this, 'register_menus']);
+    }
+
+    /**
+     * Register WordPress admin menus
      */
     public function register_menus()
     {
-        // Add debug logging with backtrace
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
-        $caller = '';
-        if (isset($backtrace[2]['class']) && isset($backtrace[2]['function'])) {
-            $caller = $backtrace[2]['class'] . '::' . $backtrace[2]['function'];
+        // $this->error_handler->debug('MenuManager: Registering menus');
+
+        try {
+            $this->register_main_menu();
+            $this->register_submenus();
+        } catch (\Exception $e) {
+            $this->error_handler->error('Menu registration failed: ' . $e->getMessage());
         }
-        error_log('HeritagePress: MenuManager::register_menus() called from ' . $caller);
+    }
 
-        // Main menu - Using standard WordPress functions with core capability
+    /**
+     * Register main menu page
+     */
+    private function register_main_menu()
+    {
+        $config = MenuConfig::getMainMenu();
+
         add_menu_page(
-            __('HeritagePress', 'heritagepress'),
-            __('HeritagePress', 'heritagepress'),
-            'manage_options', // Using core WordPress capability that admins have
-            'heritagepress',
+            $config['page_title'],
+            $config['menu_title'],
+            $config['capability'],
+            $config['menu_slug'],
             [$this, 'render_main_page'],
-            'dashicons-groups',
-            30
+            $config['icon_url'],
+            $config['position']
         );
-
-        // Register submenus
-        $this->register_submenus();
     }    /**
-         * Register all submenu pages
+         * Register submenu pages
          */
     private function register_submenus()
     {
-        $submenus = [
-            [
-                'parent' => 'heritagepress',
-                'title' => __('Individuals', 'heritagepress'),
-                'menu_title' => __('Individuals', 'heritagepress'),
-                'capability' => 'manage_options', // Using core WordPress capability
-                'slug' => 'heritagepress-individuals',
-                'callback' => [$this, 'render_individuals_page']
-            ],
-            [
-                'parent' => 'heritagepress',
-                'title' => __('Import/Export', 'heritagepress'),
-                'menu_title' => __('Import/Export', 'heritagepress'),
-                'capability' => 'manage_options', // Using core WordPress capability
-                'slug' => 'heritagepress-importexport',
-                'callback' => [$this, 'render_importexport_page']
-            ],
-            [
-                'parent' => 'heritagepress',
-                'title' => __('Tools', 'heritagepress'),
-                'menu_title' => __('Tools', 'heritagepress'),
-                'capability' => 'manage_options', // Using core WordPress capability
-                'slug' => 'heritagepress-tools',
-                'callback' => [$this, 'render_tools_page']
-            ],
-            // Add other submenus...
-        ];
+        $submenus = MenuConfig::getOrderedSubmenus();
 
-        foreach ($submenus as $submenu) {
+        foreach ($submenus as $key => $submenu) {
             add_submenu_page(
-                $submenu['parent'],
-                $submenu['title'],
+                $submenu['parent_slug'],
+                $submenu['page_title'],
                 $submenu['menu_title'],
                 $submenu['capability'],
-                $submenu['slug'],
-                $submenu['callback']
+                $submenu['menu_slug'],
+                [$this, 'render_submenu_page']
             );
         }
     }
 
     /**
-     * Render the main HeritagePress admin page
+     * Render main HeritagePress page
      */
     public function render_main_page()
     {
-        echo '<div class="wrap"><h1>HeritagePress Main Page</h1></div>';
-    }
-
-    /**
-     * Render the individuals management page
-     */
-    public function render_individuals_page()
-    {
-        echo '<div class="wrap"><h1>HeritagePress Individuals</h1><p>Individual management interface will be available here.</p></div>';
+        try {
+            $this->render_page_content('main', [
+                'title' => __('HeritagePress Dashboard', 'heritagepress'),
+                'content' => $this->get_dashboard_content()
+            ]);
+        } catch (\Exception $e) {
+            $this->error_handler->error('Failed to render main page: ' . $e->getMessage());
+            $this->render_error_page($e);
+        }
     }    /**
-         * Render the Import/Export page
+         * Render submenu page using manager factory
          */
-    public function render_importexport_page()
+    public function render_submenu_page()
     {
-        // Directly instantiate the ImportExportManager class with full namespace
-        $importExport = new \HeritagePress\Admin\ImportExportManager();
-        $importExport->render_page();
+        try {
+            $current_page = $this->get_current_page_slug();
+            $manager_class = MenuConfig::getManagerForSlug($current_page);
+
+            if (!$manager_class) {
+                throw new \Exception("No manager found for page: {$current_page}");
+            }
+
+            $manager = $this->manager_factory->create($manager_class);
+
+            if ($manager && method_exists($manager, 'render_page')) {
+                $manager->render_page();
+            } else {
+                $this->render_fallback_page($current_page);
+            }
+        } catch (\Exception $e) {
+            $this->error_handler->error('Failed to render submenu page: ' . $e->getMessage());
+            $this->render_error_page($e);
+        }
     }
 
     /**
-     * Render the Tools page
+     * Get current page slug
+     *
+     * @return string
      */
-    public function render_tools_page()
+    private function get_current_page_slug()
     {
-        // Directly instantiate the TableManager class with full namespace
-        $tableManager = new \HeritagePress\Admin\TableManager();
-        $tableManager->render_page();
+        return isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+    }
+
+    /**
+     * Render page content with common wrapper
+     *
+     * @param string $type Page type
+     * @param array $data Page data
+     */
+    private function render_page_content($type, $data)
+    {
+        echo '<div class="wrap heritagepress-admin-page">';
+        echo '<h1>' . esc_html($data['title']) . '</h1>';
+        echo '<div class="heritagepress-content">';
+        echo $data['content'];
+        echo '</div>';
+        echo '</div>';
+    }
+
+    /**
+     * Get dashboard content
+     *
+     * @return string
+     */
+    private function get_dashboard_content()
+    {
+        ob_start();
+        ?>
+        <div class="heritagepress-dashboard">
+            <div class="welcome-panel">
+                <div class="welcome-panel-content">
+                    <h2><?php _e('Welcome to HeritagePress', 'heritagepress'); ?></h2>
+                    <p class="about-description">
+                        <?php _e('Manage your family history and genealogy data with HeritagePress.', 'heritagepress'); ?>
+                    </p>
+                    <div class="welcome-panel-column-container">
+                        <div class="welcome-panel-column">
+                            <h3><?php _e('Get Started', 'heritagepress'); ?></h3>
+                            <a class="button button-primary button-hero"
+                                href="<?php echo admin_url('admin.php?page=heritagepress-trees'); ?>">
+                                <?php _e('Manage Trees', 'heritagepress'); ?>
+                            </a>
+                        </div>
+                        <div class="welcome-panel-column">
+                            <h3><?php _e('Import Data', 'heritagepress'); ?></h3>
+                            <a class="button button-secondary"
+                                href="<?php echo admin_url('admin.php?page=heritagepress-importexport'); ?>">
+                                <?php _e('Import GEDCOM', 'heritagepress'); ?>
+                            </a>
+                        </div>
+                        <div class="welcome-panel-column">
+                            <h3><?php _e('Manage Tools', 'heritagepress'); ?></h3>
+                            <a class="button button-secondary"
+                                href="<?php echo admin_url('admin.php?page=heritagepress-tools'); ?>">
+                                <?php _e('Database Tools', 'heritagepress'); ?>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Render fallback page for missing managers
+     *
+     * @param string $page_slug Page slug
+     */
+    private function render_fallback_page($page_slug)
+    {
+        $this->render_page_content('fallback', [
+            'title' => __('Page Not Available', 'heritagepress'),
+            'content' => sprintf(
+                '<p>%s</p><p><a href="%s">%s</a></p>',
+                sprintf(__('The page "%s" is not yet available.', 'heritagepress'), esc_html($page_slug)),
+                admin_url('admin.php?page=heritagepress'),
+                __('Return to Dashboard', 'heritagepress')
+            )
+        ]);
+    }
+
+    /**
+     * Render error page
+     *
+     * @param \Exception $exception Exception to display
+     */
+    private function render_error_page(\Exception $exception)
+    {
+        $this->render_page_content('error', [
+            'title' => __('Error', 'heritagepress'),
+            'content' => sprintf(
+                '<div class="notice notice-error"><p>%s</p></div>',
+                esc_html($exception->getMessage())
+            )
+        ]);
     }
 }

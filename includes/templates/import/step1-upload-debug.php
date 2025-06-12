@@ -1,6 +1,6 @@
 <?php
 /**
- * Import Step 1: File upload form
+ * Debug version of Import Step 1 to check available variables
  *
  * @package HeritagePress
  */
@@ -9,17 +9,34 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+echo "<h2>Debug: Available Variables in step1-upload.php</h2>";
+
+echo "<h3>All Variables:</h3>";
+echo "<pre>";
+print_r(get_defined_vars());
+echo "</pre>";
+
+echo "<h3>Specific Variables Check:</h3>";
+echo "<p>\$trees isset: " . (isset($trees) ? 'YES' : 'NO') . "</p>";
+echo "<p>\$trees empty: " . (empty($trees) ? 'YES' : 'NO') . "</p>";
+
+if (isset($trees)) {
+    echo "<p>\$trees type: " . gettype($trees) . "</p>";
+    echo "<p>\$trees count: " . (is_array($trees) || is_object($trees) ? count($trees) : 'N/A') . "</p>";
+
+    if (!empty($trees)) {
+        echo "<h4>Trees content:</h4>";
+        echo "<pre>";
+        print_r($trees);
+        echo "</pre>";
+    }
+}
+
 // Get available trees from the ImportExportManager (passed from render_import_tab)
 // $trees variable is available from the include context
 if (!isset($trees)) {
     $trees = array(); // Fallback if no trees are available
-    // Try to get trees directly if they weren't passed
-    if (class_exists('HeritagePress\Admin\ImportExportManager')) {
-        global $wpdb;
-        if ($wpdb) {
-            $trees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}hp_trees ORDER BY title ASC");
-        }
-    }
+    echo "<p style='color: red;'>⚠️ No trees variable found, using empty fallback</p>";
 }
 
 ?>
@@ -52,30 +69,30 @@ if (!isset($trees)) {
                 <th scope="row">
                     <label for="hp-gedcom-tree"><?php esc_html_e('Destination Tree', 'heritagepress'); ?></label>
                 </th>
-                <td> <select name="tree_id" id="hp-gedcom-tree">
+                <td>
+                    <select name="tree_id" id="hp-gedcom-tree">
                         <option value="new"><?php esc_html_e('Create New Tree', 'heritagepress'); ?></option>
                         <?php
+                        echo "<!-- Debug: trees check -->";
+                        echo "<!-- isset: " . (isset($trees) ? 'yes' : 'no') . " -->";
+                        echo "<!-- empty: " . (empty($trees) ? 'yes' : 'no') . " -->";
+                        echo "<!-- count: " . (is_array($trees) ? count($trees) : 'not array') . " -->";
+
                         // Display available trees from database
-                        // First try to use the $trees variable passed from ImportExportManager
                         if (isset($trees) && !empty($trees)) {
+                            echo "<!-- Found trees, iterating -->";
                             foreach ($trees as $tree) {
-                                if (isset($tree->id) && isset($tree->title)) {
+                                // The database column is confirmed to be 'id'
+                                if (isset($tree->id)) {
                                     echo '<option value="' . esc_attr($tree->id) . '">' . esc_html($tree->title) . '</option>';
+                                } else {
+                                    // Log for debugging if needed
+                                    error_log('HeritagePress: Tree missing ID property: ' . print_r(get_object_vars($tree), true));
+                                    echo "<!-- Tree missing ID: " . print_r(get_object_vars($tree), true) . " -->";
                                 }
                             }
                         } else {
-                            // Fallback: Get trees directly from database
-                            global $wpdb;
-                            if ($wpdb) {
-                                $fallback_trees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}hp_trees ORDER BY title ASC");
-                                if (!empty($fallback_trees)) {
-                                    foreach ($fallback_trees as $tree) {
-                                        if (isset($tree->id) && isset($tree->title)) {
-                                            echo '<option value="' . esc_attr($tree->id) . '">' . esc_html($tree->title) . '</option>';
-                                        }
-                                    }
-                                }
-                            }
+                            echo "<!-- No trees found or trees variable not set -->";
                         }
                         ?>
                     </select>
@@ -85,32 +102,6 @@ if (!isset($trees)) {
                         <input type="text" name="new_tree_name" id="new_tree_name"
                             placeholder="<?php esc_attr_e('My Family Tree', 'heritagepress'); ?>">
                     </div>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <?php esc_html_e('Import Options', 'heritagepress'); ?>
-                </th>
-                <td>
-                    <fieldset>
-                        <legend class="screen-reader-text"><?php esc_html_e('Import Options', 'heritagepress'); ?>
-                        </legend>
-
-                        <label>
-                            <input type="radio" name="import_option" value="replace" checked>
-                            <?php esc_html_e('Replace existing data (recommended for new trees)', 'heritagepress'); ?>
-                        </label><br>
-
-                        <label>
-                            <input type="radio" name="import_option" value="add">
-                            <?php esc_html_e('Add to existing data (skip duplicates)', 'heritagepress'); ?>
-                        </label><br>
-
-                        <label>
-                            <input type="radio" name="import_option" value="merge">
-                            <?php esc_html_e('Merge with existing data (update duplicates)', 'heritagepress'); ?>
-                        </label>
-                    </fieldset>
                 </td>
             </tr>
         </table>

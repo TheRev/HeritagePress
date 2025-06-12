@@ -1,22 +1,41 @@
 <?php
+/**
+ * Asset Manager for HeritagePress
+ *
+ * Modernized asset manager using AssetManagerService for better organization.
+ *
+ * @package HeritagePress
+ * @subpackage Admin
+ * @since 1.0.0
+ */
+
 namespace HeritagePress\Admin;
 
+use HeritagePress\Services\AssetManagerService;
+use HeritagePress\Core\ServiceContainer;
+
 /**
- * Handles asset (scripts/styles) management for the HeritagePress plugin
+ * Asset Manager Class
  */
 class AssetManager
 {
-    /** @var string Plugin URL */
-    private $plugin_url;
+    /**
+     * Asset manager service
+     *
+     * @var AssetManagerService
+     */
+    private $asset_service;
 
     /**
      * Constructor
      * 
      * @param string $plugin_url Base URL for the plugin
+     * @param ServiceContainer $container Optional service container
      */
-    public function __construct($plugin_url)
+    public function __construct($plugin_url, ServiceContainer $container = null)
     {
-        $this->plugin_url = $plugin_url;
+        $container = $container ?: new ServiceContainer();
+        $this->asset_service = new AssetManagerService($container, $plugin_url, HERITAGEPRESS_VERSION);
     }
 
     /**
@@ -26,82 +45,33 @@ class AssetManager
      */
     public function enqueue_assets($hook)
     {
+        // Only load on HeritagePress admin pages
         if (strpos($hook, 'heritagepress') === false) {
             return;
         }
 
-        $this->enqueue_styles();
-        $this->enqueue_scripts();
+        $this->asset_service->enqueue_assets($hook);
     }
 
     /**
-     * Enqueue admin styles
+     * Register additional asset
+     *
+     * @param string $type Asset type (style|script)
+     * @param string $handle Asset handle
+     * @param array $config Asset configuration
      */
-    private function enqueue_styles()
+    public function register_asset($type, $handle, $config)
     {
-        wp_enqueue_style(
-            'heritagepress-admin',
-            $this->plugin_url . 'assets/css/admin.css',
-            [],
-            HERITAGEPRESS_VERSION
-        );
+        $this->asset_service->register_asset($type, $handle, $config);
+    }
 
-        // Check if we're on the import/export page
-        $screen = get_current_screen();
-        if ($screen && strpos($screen->id, 'heritagepress-importexport') !== false) {
-            wp_enqueue_style(
-                'heritagepress-import-export',
-                $this->plugin_url . 'assets/css/import-export.css',
-                [],
-                HERITAGEPRESS_VERSION
-            );
-        }
-    }    /**
-         * Enqueue admin scripts
-         */
-    private function enqueue_scripts()
+    /**
+     * Get asset service for advanced usage
+     *
+     * @return AssetManagerService
+     */
+    public function get_asset_service()
     {
-        wp_enqueue_script(
-            'heritagepress-admin',
-            $this->plugin_url . 'assets/js/admin.js',
-            ['jquery', 'wp-util'],
-            HERITAGEPRESS_VERSION,
-            true
-        );
-
-        wp_localize_script('heritagepress-admin', 'HeritagePress', [
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('heritagepress_ajax_nonce')
-        ]);
-
-        // Check if we're on the import/export page
-        if (!function_exists('get_current_screen')) {
-            require_once ABSPATH . 'wp-admin/includes/screen.php';
-        }
-
-        $screen = get_current_screen();
-        if ($screen && strpos($screen->id, 'heritagepress-importexport') !== false) {
-            // Enqueue import/export specific scripts
-            wp_enqueue_script(
-                'heritagepress-import-export',
-                $this->plugin_url . 'assets/js/import-export.js',
-                ['jquery', 'wp-util'],
-                HERITAGEPRESS_VERSION,
-                true
-            );            // Localize variables for import/export functionality
-            wp_localize_script('heritagepress-import-export', 'hp_vars', [
-                'ajaxurl' => admin_url('admin-ajax.php'),
-                'hp_admin_url' => admin_url(),
-                'nonce' => wp_create_nonce('hp_gedcom_upload'),
-                'hp_i18n' => [
-                    'file_too_large' => __('File is too large. Maximum size is 50MB.', 'heritagepress'),
-                    'invalid_file_type' => __('Invalid file type. Only .ged and .gedcom files are allowed.', 'heritagepress'),
-                    'no_file' => __('Please select a GEDCOM file to upload.', 'heritagepress'),
-                    'drag_drop_text' => __('Drag and drop your GEDCOM file here, or click to select', 'heritagepress'),
-                    'upload_failed' => __('Upload failed. Please try again.', 'heritagepress'),
-                    'tree_name_required' => __('Please enter a name for the new tree.', 'heritagepress'),
-                ]
-            ]);
-        }
+        return $this->asset_service;
     }
 }
